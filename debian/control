@@ -1,0 +1,16 @@
+Source: libcitisim
+Section: utils
+Priority: optional
+Maintainer: David Villa Alises <David.Villa@gmail.com>
+Uploaders: Oscar Aceña Herrera <oscaracena@gmail.com>
+Build-Depends: debhelper (>= 7.0.50~), , python-all, python3-all, quilt
+Standards-Version: 4.1.1
+
+Package: libcitisim
+Architecture: all
+Depends: ${misc:Depends}, python-all, python3-all, citisim-slice
+Suggests: python3-zeroc-ice
+Description: Citisim library to easy usage
+ This library provide access so some utilities to create MetaData,
+ subscribe to Citisim channels, publish events, and so on. It provides
+ implementations on the used languages for citisim.

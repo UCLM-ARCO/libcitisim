@@ -1,0 +1,73 @@
+libcitisim (0.20180605-1) unstable; urgency=low
+
+  * New release, include slice; add support for Win32 platform
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 05 Jun 2018 12:24:24 +0200
+
+libcitisim (0.20180516.2-1) unstable; urgency=low
+
+  * New release, broker: use existing communicator
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 16 May 2018 13:36:15 +0200
+
+libcitisim (0.20180516.1-1) unstable; urgency=low
+
+  * New release, export module names
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 16 May 2018 12:34:13 +0200
+
+libcitisim (0.20180516-1) unstable; urgency=low
+
+  * New release, include Person Tracker slice
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 16 May 2018 11:24:55 +0200
+
+libcitisim (0.20180427-1) unstable; urgency=low
+
+  * New release, add support for bi-dir subscribers
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Fri, 27 Apr 2018 14:41:55 +0200
+
+libcitisim (0.20180426-1) unstable; urgency=low
+
+  * New release, add publish support
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 26 Apr 2018 15:09:59 +0200
+
+libcitisim (0.20180308.1-1) unstable; urgency=low
+
+  * New release, add broker.wait_for_events()
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 08 Mar 2018 13:22:36 +0100
+
+libcitisim (0.20180308-1) unstable; urgency=low
+
+  * New release, subscribe support for common topics
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 08 Mar 2018 12:01:42 +0100
+
+libcitisim (0.20171220-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 20 Dec 2017 12:10:53 +0100
+
+libcitisim (0.20170927-1) unstable; urgency=low
+
+  * New release
+  * Fixed support for py2/3
+
+ -- Cristian Trapero <critramo@gmail.com>  Wed, 27 Sep 2017 15:47:54 +0200
+
+libcitisim (0.20170926-1) unstable; urgency=low
+
+  * New release
+  * python 2.7 support
+
+ -- David Villa Alises <David.Villa@gmail.com>  Tue, 26 Sep 2017 12:11:23 +0200
+
+libcitisim (0.20170921-1) unstable; urgency=low
+
+  * Initial release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Thu, 21 Sep 2017 16:13:32 +0200
