@@ -149,6 +149,8 @@ topic_types = {
     "Vibration": SmartObject.AnalogSink,
     "WindVane": SmartObject.AnalogSink,
 
+    "Unconfigured": SmartObject.AnalogSink,
+
     "Twilight": SmartObject.DigitalSink,
 }
 
