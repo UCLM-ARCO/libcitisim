@@ -1,3 +1,9 @@
+libcitisim (0.20180724-1) unstable; urgency=low
+
+  * New release, update topic list
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 24 Jul 2018 13:04:55 +0200
+
 libcitisim (0.20180605-1) unstable; urgency=low
 
   * New release, include slice; add support for Win32 platform

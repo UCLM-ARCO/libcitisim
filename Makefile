@@ -7,11 +7,13 @@ PY2DIST  = /usr/lib/python2.7/dist-packages/libcitisim
 PY3DIST  = /usr/lib/python3/dist-packages/libcitisim
 DOCDIR   = $(DESTDIR)/usr/share/doc
 
+CITISIM_DIR = ../prj.citisim
+
 all:
 	python3 setup.py bdist
 
 source:
-	$(RM) -r slice; mkdir -p slice/citisim; cp ../../slice/*.ice slice/citisim
+	$(RM) -r slice; mkdir -p slice/citisim; cp $(CITISIM_DIR)/slice/*.ice slice/citisim
 	python3 setup.py sdist
 
 tests:
