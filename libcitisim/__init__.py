@@ -22,6 +22,12 @@ if not os.path.exists(SLICE_DIR):
 Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/services.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/PersonTracker.ice --all'.format(SLICE_DIR))
+
+#FIXME Load slice in the same way as the previous ones
+ps_slice_path = "/usr/share/slice/PropertyService/PropertyService.ice"
+Ice.loadSlice(ps_slice_path)
+import PropertyService as PS
+
 import SmartObject  # noqa
 from SmartObject import MetadataField  # noqa
 
@@ -338,3 +344,21 @@ class Broker:
 
             self._topic_manager = IceStorm.TopicManagerPrx.checkedCast(manager)
         return self._topic_manager
+
+    def set_property(self, path, value):
+        manager = self._get_property_manager()
+        manager.set(path, value)
+
+    def get_property(self, path):
+        manager = self._get_property_manager()
+        return manager.get(path)
+
+    def _get_property_manager(self):
+        if not hasattr(self, "_property_manager"):
+            manager = self._ic.propertyToProxy("PropertyService.Proxy")
+            if manager is None:
+                raise ValueError(
+                    "Missing configuration property: TopicManager.Proxy")
+
+            self._property_manager = PS.PropertyServerPrx.checkedCast(manager)
+            return self._property_manager

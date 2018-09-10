@@ -20,6 +20,7 @@ from unittest import TestCase
 from libcitisim import MetadataHelper, MetadataField, SmartObject
 import libcitisim
 
+import json
 
 class EventSinkI(SmartObject.EventSink):
     def notify(self, source, metdata, current=None):
@@ -658,3 +659,70 @@ class DigitalSinkPublisherTests(DigitalEventsMixin, TestCase):
                 with_args(value, anything(), anything(), anything()).
                 async(timeout=2))
             value += 5
+
+
+ps_slice_path = "/usr/share/slice/PropertyService/PropertyService.ice"
+Ice.loadSlice(ps_slice_path)
+import PropertyService as PS
+
+class PropertyMixin:
+    @classmethod
+    def setUpClass(cls):
+        pwd = os.path.dirname(__file__)
+
+        cls.config = os.path.join(pwd, "tests.config")
+        cmd = "property-server --Ice.Config=" + cls.config
+        cls.is_server = Popen(cmd.split(), cwd=pwd, stdout=PIPE)
+
+        #FIXME copypaste de IceStorm, ajustar a Property-Server
+        #pipe = select([cls.is_server.stdout], [], [], 3)[0]
+        #assert len(pipe), "IceStorm service did not launch correctly"
+        #assert pipe[0].readline() == b"IceStorm is ready\n"
+
+    @classmethod
+    def tearDownClass(cls):
+        if hasattr(cls, "is_server"):
+            cls.is_server.terminate()
+            cls.is_server.kill()
+
+    def setUp(self):
+        # for testing purposes only
+        args = ["", "--Ice.Config=" + self.config]
+        self.ic = Ice.initialize(args)
+        """
+        self.adapter = self.ic.createObjectAdapterWithEndpoints(
+            'adapter', 'tcp -h 127.0.0.1')
+        self.adapter.activate()
+        """
+        # the real subject under testing
+        self.broker = libcitisim.Broker(self.config)
+
+    def _get_property(self, path):
+        manager = self.ic.propertyToProxy("PropertyService.Proxy")
+        manager = PS.PropertyServerPrx.checkedCast(manager)
+        return manager.get(path)
+
+    def _set_property(self, path, value):
+        manager = self.ic.propertyToProxy("PropertyService.Proxy")
+        manager = PS.PropertyServerPrx.checkedCast(manager)
+        return manager.set(path, value)
+
+class PropertyServerTests(PropertyMixin, TestCase):
+    def setUp(self):
+        PropertyMixin.setUp(self)
+
+    def test_set_property(self):
+        # set a property
+        path = '17510026 | units'
+        value = json.dumps("C")
+        self.broker.set_property(path, value)
+        obtained_value = self._get_property(path)
+        assert_that(value, equal_to(obtained_value))
+
+    def test_get_property(self):
+        # get a property
+        path = '17510026 | manufacturer'
+        value = json.dumps("libelium")
+        self._set_property(path, value)
+        obtained_value = self.broker.get_property(path)
+        assert_that(value, equal_to(obtained_value))
