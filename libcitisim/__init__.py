@@ -27,6 +27,7 @@ Ice.loadSlice('{}/PersonTracker.ice --all'.format(SLICE_DIR))
 ps_slice_path = "/usr/share/slice/PropertyService/PropertyService.ice"
 Ice.loadSlice(ps_slice_path)
 import PropertyService as PS
+import json
 
 import SmartObject  # noqa
 from SmartObject import MetadataField  # noqa
@@ -346,8 +347,9 @@ class Broker:
         return self._topic_manager
 
     def set_property(self, path, value):
+        serializedValue = json.dumps(value)
         manager = self._get_property_manager()
-        manager.set(path, value)
+        manager.set(path, serializedValue)
 
     def get_property(self, path):
         manager = self._get_property_manager()

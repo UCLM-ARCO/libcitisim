@@ -711,18 +711,92 @@ class PropertyServerTests(PropertyMixin, TestCase):
     def setUp(self):
         PropertyMixin.setUp(self)
 
-    def test_set_property(self):
-        # set a property
+    def test_set_property_string(self):
+        # set a string property
         path = '17510026 | units'
-        value = json.dumps("C")
+        value = 'Celsius'
         self.broker.set_property(path, value)
         obtained_value = self._get_property(path)
-        assert_that(value, equal_to(obtained_value))
+        assert_that(json.dumps(value), equal_to(obtained_value))
 
-    def test_get_property(self):
-        # get a property
-        path = '17510026 | manufacturer'
-        value = json.dumps("libelium")
+    def test_get_property_string(self):
+        # get a string property
+        path = '17510026 | units'
+        value = json.dumps('Celsius')
         self._set_property(path, value)
         obtained_value = self.broker.get_property(path)
         assert_that(value, equal_to(obtained_value))
+
+    def test_set_property_int(self):
+        # set an int property
+        path = '17510026 | int'
+        value = 6486
+        self.broker.set_property(path, value)
+        obtained_value = self._get_property(path)
+        assert_that(json.dumps(value), equal_to(obtained_value))
+
+    def test_get_property_int(self):
+        # get a int property
+        path = '17510026 | int'
+        value = json.dumps(6486)
+        self._set_property(path, value)
+        obtained_value = self.broker.get_property(path)
+        assert_that(value, equal_to(obtained_value))
+
+    def test_set_property_float(self):
+        # set a float property
+        path = '17510026 | float'
+        value = 64.86
+        self.broker.set_property(path, value)
+        obtained_value = self._get_property(path)
+        assert_that(json.dumps(value), equal_to(obtained_value))
+
+    def test_get_property_float(self):
+        # get a float property
+        path = '17510026 | float'
+        value = json.dumps(64.86)
+        self._set_property(path, value)
+        obtained_value = self.broker.get_property(path)
+        assert_that(value, equal_to(obtained_value))
+
+    def test_set_property_tuple(self):
+        # set a tuple property
+        path = '17510026 | tuple'
+        value = (-50, 255)
+        self.broker.set_property(path, value)
+        obtained_value = self._get_property(path)
+        assert_that(json.dumps(value), equal_to(obtained_value))
+
+    def test_get_property_tuple(self):
+        # get a tuple property
+        path = '17510026 | tuple'
+        tup = (-50, 255)
+        value = json.dumps(tup)
+        self._set_property(path, value)
+        obtained_value = self.broker.get_property(path)
+        assert_that(value, equal_to(obtained_value))
+
+    def test_set_property_list(self):
+        # set a list property
+        path = '17510026 | list'
+        value = [-50, 255]
+        self.broker.set_property(path, value)
+        obtained_value = self._get_property(path)
+        assert_that(json.dumps(value), equal_to(obtained_value))
+
+    def test_get_property_list(self):
+        # get a list property
+        path = '17510026 | list'
+        li = [-50, 255]
+        value = json.dumps(li)
+        self._set_property(path, value)
+        obtained_value = self.broker.get_property(path)
+        assert_that(value, equal_to(obtained_value))
+
+    def test_set_property_dict(self):
+        # set a dictionary property
+        path = '17510026 | dict'
+        value = {'dict1':'a', 'dict2':2, 'dict3':3.14}
+        self.broker.set_property(path, value)
+        obtained_value = self._get_property(path)
+        assert_that(json.dumps(value), equal_to(obtained_value))
