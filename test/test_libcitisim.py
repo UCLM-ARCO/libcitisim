@@ -674,10 +674,9 @@ class PropertyMixin:
         cmd = "property-server --Ice.Config=" + cls.config
         cls.is_server = Popen(cmd.split(), cwd=pwd, stdout=PIPE)
 
-        #FIXME copypaste de IceStorm, ajustar a Property-Server
-        #pipe = select([cls.is_server.stdout], [], [], 3)[0]
-        #assert len(pipe), "IceStorm service did not launch correctly"
-        #assert pipe[0].readline() == b"IceStorm is ready\n"
+        pipe = select([cls.is_server.stdout], [], [], 3)[0]
+        assert len(pipe), "Property service did not launch correctly"
+        assert pipe[0].readline() == b'PropertyServer -t -e 1.1:tcp -h 161.67.106.78 -p 9090 -t 60000\n'
 
     @classmethod
     def tearDownClass(cls):
@@ -689,13 +688,12 @@ class PropertyMixin:
         # for testing purposes only
         args = ["", "--Ice.Config=" + self.config]
         self.ic = Ice.initialize(args)
-        """
-        self.adapter = self.ic.createObjectAdapterWithEndpoints(
-            'adapter', 'tcp -h 127.0.0.1')
-        self.adapter.activate()
-        """
+
         # the real subject under testing
         self.broker = libcitisim.Broker(self.config)
+
+    def tearDown(self):
+        self.ic.destroy()
 
     def _get_property(self, path):
         manager = self.ic.propertyToProxy("PropertyService.Proxy")
@@ -711,20 +709,23 @@ class PropertyServerTests(PropertyMixin, TestCase):
     def setUp(self):
         PropertyMixin.setUp(self)
 
+    def tearDown(self):
+        PropertyMixin.tearDown(self)
+
     def test_set_property_string(self):
         # set a string property
         path = '17510026 | units'
         value = 'Celsius'
         self.broker.set_property(path, value)
-        obtained_value = self._get_property(path)
-        assert_that(json.dumps(value), equal_to(obtained_value))
+        obtained_value = json.loads(self._get_property(path))
+        assert_that(value, equal_to(obtained_value))
 
     def test_get_property_string(self):
         # get a string property
         path = '17510026 | units'
-        value = json.dumps('Celsius')
-        self._set_property(path, value)
-        obtained_value = self.broker.get_property(path)
+        value = 'Celsius'
+        self._set_property(path, json.dumps(value))
+        obtained_value = json.loads(self.broker.get_property(path))
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_int(self):
@@ -732,15 +733,15 @@ class PropertyServerTests(PropertyMixin, TestCase):
         path = '17510026 | int'
         value = 6486
         self.broker.set_property(path, value)
-        obtained_value = self._get_property(path)
-        assert_that(json.dumps(value), equal_to(obtained_value))
+        obtained_value = json.loads(self._get_property(path))
+        assert_that(value, equal_to(obtained_value))
 
     def test_get_property_int(self):
         # get a int property
         path = '17510026 | int'
-        value = json.dumps(6486)
-        self._set_property(path, value)
-        obtained_value = self.broker.get_property(path)
+        value = 6486
+        self._set_property(path, json.dumps(value))
+        obtained_value = json.loads(self.broker.get_property(path))
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_float(self):
@@ -748,15 +749,15 @@ class PropertyServerTests(PropertyMixin, TestCase):
         path = '17510026 | float'
         value = 64.86
         self.broker.set_property(path, value)
-        obtained_value = self._get_property(path)
-        assert_that(json.dumps(value), equal_to(obtained_value))
+        obtained_value = json.loads(self._get_property(path))
+        assert_that(value, equal_to(obtained_value))
 
     def test_get_property_float(self):
         # get a float property
         path = '17510026 | float'
-        value = json.dumps(64.86)
-        self._set_property(path, value)
-        obtained_value = self.broker.get_property(path)
+        value = 64.86
+        self._set_property(path, json.dumps(value))
+        obtained_value = json.loads(self.broker.get_property(path))
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_tuple(self):
@@ -770,33 +771,54 @@ class PropertyServerTests(PropertyMixin, TestCase):
     def test_get_property_tuple(self):
         # get a tuple property
         path = '17510026 | tuple'
-        tup = (-50, 255)
-        value = json.dumps(tup)
-        self._set_property(path, value)
+        value = (-50, 255)
+        self._set_property(path, json.dumps(value))
         obtained_value = self.broker.get_property(path)
-        assert_that(value, equal_to(obtained_value))
+        assert_that(json.dumps(value), equal_to(obtained_value))
 
     def test_set_property_list(self):
         # set a list property
         path = '17510026 | list'
         value = [-50, 255]
         self.broker.set_property(path, value)
-        obtained_value = self._get_property(path)
-        assert_that(json.dumps(value), equal_to(obtained_value))
+        obtained_value = json.loads(self._get_property(path))
+        assert_that(value, equal_to(obtained_value))
 
     def test_get_property_list(self):
         # get a list property
         path = '17510026 | list'
-        li = [-50, 255]
-        value = json.dumps(li)
-        self._set_property(path, value)
-        obtained_value = self.broker.get_property(path)
+        value = [-50, 255]
+        self._set_property(path, json.dumps(value))
+        obtained_value = json.loads(self.broker.get_property(path))
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_dict(self):
         # set a dictionary property
         path = '17510026 | dict'
-        value = {'dict1':'a', 'dict2':2, 'dict3':3.14}
+        value = {'key1':'a', 'key2':2, 'key3':3.14}
         self.broker.set_property(path, value)
-        obtained_value = self._get_property(path)
-        assert_that(json.dumps(value), equal_to(obtained_value))
+        obtained_value = json.loads(self._get_property(path))
+        assert_that(value, equal_to(obtained_value))
+        # individual key values
+        key1_value = json.loads(self._get_property('17510026 | dict | key1'))
+        assert_that(value['key1'], equal_to(key1_value))
+        key2_value = json.loads(self._get_property('17510026 | dict | key2'))
+        assert_that(value['key2'], equal_to(key2_value))
+        key3_value = json.loads(self._get_property('17510026 | dict | key3'))
+        assert_that(value['key3'], equal_to(key3_value))
+
+
+    def test_get_property_dict(self):
+        # get a dictionary property
+        path = '17510026 | dict'
+        value = {'key1':'a', 'key2':2, 'key3':3.14}
+        self._set_property(path, json.dumps(value))
+        obtained_value = json.loads(self.broker.get_property(path))
+        assert_that(value, equal_to(obtained_value))
+        # individual key values
+        key1_value = json.loads(self.broker.get_property('17510026 | dict | key1'))
+        assert_that(value['key1'], equal_to(key1_value))
+        key2_value = json.loads(self.broker.get_property('17510026 | dict | key2'))
+        assert_that(value['key2'], equal_to(key2_value))
+        key3_value = json.loads(self.broker.get_property('17510026 | dict | key3'))
+        assert_that(value['key3'], equal_to(key3_value))

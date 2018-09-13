@@ -347,9 +347,9 @@ class Broker:
         return self._topic_manager
 
     def set_property(self, path, value):
-        serializedValue = json.dumps(value)
+        serialized_value = json.dumps(value)
         manager = self._get_property_manager()
-        manager.set(path, serializedValue)
+        manager.set(path, serialized_value)
 
     def get_property(self, path):
         manager = self._get_property_manager()
@@ -363,4 +363,4 @@ class Broker:
                     "Missing configuration property: TopicManager.Proxy")
 
             self._property_manager = PS.PropertyServerPrx.checkedCast(manager)
-            return self._property_manager
+        return self._property_manager
