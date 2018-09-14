@@ -807,7 +807,6 @@ class PropertyServerTests(PropertyMixin, TestCase):
         key3_value = json.loads(self._get_property('17510026 | dict | key3'))
         assert_that(value['key3'], equal_to(key3_value))
 
-
     def test_get_property_dict(self):
         # get a dictionary property
         path = '17510026 | dict'
@@ -822,3 +821,13 @@ class PropertyServerTests(PropertyMixin, TestCase):
         assert_that(value['key2'], equal_to(key2_value))
         key3_value = json.loads(self.broker.get_property('17510026 | dict | key3'))
         assert_that(value['key3'], equal_to(key3_value))
+
+    def test_set_not_serializable(self):
+        # set a value that can not be JSON serialized
+        path = '17510026 | notSerializable'
+        value = time
+        # this should raise a TypeError Exception
+        process_event = method_returning(None)
+        assert_that(
+            calling(self.broker.set_property).with_args(path, value,
+                process_event), raises(TypeError))
