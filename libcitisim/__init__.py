@@ -23,9 +23,16 @@ Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/services.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/PersonTracker.ice --all'.format(SLICE_DIR))
 
-#FIXME Load slice in the same way as the previous ones
-ps_slice_path = "/usr/share/slice/PropertyService/PropertyService.ice"
-Ice.loadSlice(ps_slice_path)
+
+PROP_SLICE_DIR = os.path.join(PWD, "../../../slice")
+if not os.path.exists(PROP_SLICE_DIR):
+    if sys.platform == "win32":
+        PROP_SLICE_DIR = os.path.join(Ice.getSliceDir(), "PropertyService")
+    else:
+        PROP_SLICE_DIR = "/usr/share/slice/PropertyService/"
+
+Ice.loadSlice('{}/PropertyService.ice --all'.format(PROP_SLICE_DIR))
+
 import PropertyService as PS
 import json
 
