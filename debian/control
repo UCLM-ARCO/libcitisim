@@ -8,7 +8,7 @@ Standards-Version: 4.1.1
 
 Package: libcitisim
 Architecture: all
-Depends: ${misc:Depends}, python-all, python3-all, citisim-slice
+Depends: ${misc:Depends}, python-all, python3-all, citisim-slice, property-service-slice
 Suggests: python3-zeroc-ice
 Description: Citisim library to easy usage
  This library provide access so some utilities to create MetaData,
