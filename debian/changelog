@@ -1,3 +1,9 @@
+libcitisim (0.20181031.1-1) unstable; urgency=low
+
+  * New release, new topic "Energy"
+
+ -- David Villa Alises <David.Villa@gmail.com>  Wed, 31 Oct 2018 18:59:27 +0100
+
 libcitisim (0.20181031-1) unstable; urgency=low
 
   * New release, support for ActivePower, AirPollutants1 and AirPollutants2 added

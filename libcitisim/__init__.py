@@ -146,6 +146,7 @@ topic_types = {
     "CarbonDioxide": SmartObject.AnalogSink,
     "CarbonMonoxide": SmartObject.AnalogSink,
     "Dioxygen": SmartObject.AnalogSink,
+    "Energy": SmartObject.AnalogSink,
     "HydrocarbonsVOC": SmartObject.AnalogSink,
     "Humidity": SmartObject.AnalogSink,
     "NitrogenDioxide": SmartObject.AnalogSink,
