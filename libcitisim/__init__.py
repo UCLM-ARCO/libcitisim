@@ -268,7 +268,13 @@ class Broker:
     def __init__(self, config, ic=None):
         self._ic = ic
         if ic is None:
-            self._ic = Ice.initialize([sys.argv[0], "--Ice.Config=" + config])
+            if isinstance(config, str):
+                self._ic = Ice.initialize([sys.argv[0], "--Ice.Config=" + config])
+            elif isinstance(config, list):
+                self._ic = Ice.initialize(config)
+            else:
+                raise Exception("Broker argument should be config filename (str) or command line args (list)")
+
         self._adapter = None
 
         props = self._ic.getProperties()
