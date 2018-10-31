@@ -138,6 +138,9 @@ class ObservableMixin:
 
 # FIXME: Consider using PropertyService for topic-type mapping
 topic_types = {
+    "ActivePower": SmartObject.AnalogSink,
+    "AirPollutants1": SmartObject.AnalogSink,
+    "AirPollutants2": SmartObject.AnalogSink,
     "Anemometer": SmartObject.AnalogSink,
     "Battery": SmartObject.AnalogSink,
     "CarbonDioxide": SmartObject.AnalogSink,
