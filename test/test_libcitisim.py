@@ -676,7 +676,7 @@ class PropertyMixin:
 
         pipe = select([cls.is_server.stdout], [], [], 3)[0]
         assert len(pipe), "Property service did not launch correctly"
-        assert pipe[0].readline() == b'PropertyServer -t -e 1.1:tcp -h 161.67.106.78 -p 9090 -t 60000\n'
+        assert pipe[0].readline()[:31] == b'PropertyServer -t -e 1.1:tcp -h'
 
     @classmethod
     def tearDownClass(cls):
