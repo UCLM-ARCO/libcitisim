@@ -19,7 +19,6 @@ if not os.path.exists(SLICE_DIR):
     else:
         SLICE_DIR = "/usr/share/slice/citisim/"
 
-Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/services.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/PersonTracker.ice --all'.format(SLICE_DIR))
 
@@ -136,43 +135,6 @@ class ObservableMixin:
         logger.info("new observer {} for {}".format(observer, current.id.name))
 
 
-# FIXME: Consider using PropertyService for topic-type mapping
-topic_types = {
-    "ActivePower": SmartObject.AnalogSink,
-    "AirPollutants1": SmartObject.AnalogSink,
-    "AirPollutants2": SmartObject.AnalogSink,
-    "Anemometer": SmartObject.AnalogSink,
-    "Battery": SmartObject.AnalogSink,
-    "CarbonDioxide": SmartObject.AnalogSink,
-    "CarbonMonoxide": SmartObject.AnalogSink,
-    "Dioxygen": SmartObject.AnalogSink,
-    "Energy": SmartObject.AnalogSink,
-    "HydrocarbonsVOC": SmartObject.AnalogSink,
-    "Humidity": SmartObject.AnalogSink,
-    "NitrogenDioxide": SmartObject.AnalogSink,
-    "Ozone": SmartObject.AnalogSink,
-    "ParticulateMatter1um": SmartObject.AnalogSink,
-    "ParticulateMatter2.5um": SmartObject.AnalogSink,
-    "ParticulateMatter10um": SmartObject.AnalogSink,
-    "PluviometerCurrent": SmartObject.AnalogSink,
-    "PluviometerLastDay": SmartObject.AnalogSink,
-    "PluviometerLastHour": SmartObject.AnalogSink,
-    "Power": SmartObject.AnalogSink,
-    "Pressure": SmartObject.AnalogSink,
-    "SoilMoisture": SmartObject.AnalogSink,
-    "SoilTemperature": SmartObject.AnalogSink,
-    "SolarRadiation": SmartObject.AnalogSink,
-    "StemDiameter": SmartObject.AnalogSink,
-    "Temperature": SmartObject.AnalogSink,
-    "Vibration": SmartObject.AnalogSink,
-    "WindVane": SmartObject.AnalogSink,
-
-    "Unconfigured": SmartObject.AnalogSink,
-
-    "Twilight": SmartObject.DigitalSink,
-}
-
-
 class EventWithValueMixin:
     def _notify(self, value, source, meta, current):
         try:
@@ -220,7 +182,7 @@ class ADPublisher:
         self._topic_name = topic_name
         self._source = source
         self._meta = meta
-        self._type = topic_types.get(topic_name)
+        self._type = datamodel.topic_types.get(topic_name)
         self._publisher = None
 
         if self._type is None:
@@ -336,7 +298,7 @@ class Broker:
             pass
 
     def _get_servant_proxy(self, topic_name, callback):
-        type_ = topic_types.get(topic_name)
+        type_ = datamodel.topic_types.get(topic_name)
         if type_ is None:
             raise ValueError("Unknown topic name: {}".format(topic_name))
 
