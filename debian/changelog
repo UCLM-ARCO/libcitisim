@@ -1,3 +1,9 @@
+libcitisim (0.20181105-1) unstable; urgency=low
+
+  * New release, topic_types transferred to datamodel.py
+
+ -- Jose Ignacio Mota Ortiz <joseignacio.mota@uclm.es>  Mon, 05 Nov 2018 11:56:11 +0100
+
 libcitisim (0.20181031.1-1) unstable; urgency=low
 
   * New release, new topic "Energy"
