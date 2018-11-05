@@ -50,10 +50,11 @@ logger.addHandler(handler)
 handler.setFormatter(logging.Formatter('[%(name)s]:%(levelname)s %(message)s'))
 
 
+# FIXME: merge with datamodel/Cast
 class Cast:
-    def __init__(self, type_, check=None):
+    def __init__(self, type_, checker=None):
         self.type = type_
-        self.check = check or (lambda x: True)
+        self.checker = checker or (lambda x: True)
 
 
 class MetadataHelper:
@@ -75,7 +76,7 @@ class MetadataHelper:
             if value is None:
                 continue
 
-            if not cast.check(value):
+            if not cast.checker(value):
                 raise TypeError(key)
 
             setattr(self, key, cast.type(value))
@@ -269,15 +270,17 @@ class Broker:
         SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
     }
 
-    def __init__(self, config, ic=None):
+    def __init__(self, arg, ic=None):
         self._ic = ic
         if ic is None:
-            if isinstance(config, str):
-                self._ic = Ice.initialize([sys.argv[0], "--Ice.Config=" + config])
-            elif isinstance(config, list):
-                self._ic = Ice.initialize(config)
+            if isinstance(arg, str):
+                self._ic = Ice.initialize([sys.argv[0], "--Ice.Config=" + arg])
+            elif isinstance(arg, list):
+                self._ic = Ice.initialize(arg)
+            elif isinstance(arg, Ice.CommunicatorI):
+                self._ic = arg
             else:
-                raise Exception("Broker argument should be config filename (str) or command line args (list)")
+                raise Exception("Broker argument should be filename (str) or command line (str list) or Ice.Communicator instance")
 
         self._adapter = None
 

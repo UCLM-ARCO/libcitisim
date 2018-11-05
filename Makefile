@@ -28,4 +28,4 @@ install:
 
 .PHONY: clean
 clean:
-	$(RM) -r slice dist libcitisim.egg-info
+	$(RM) -r slice dist libcitisim.egg-info build
