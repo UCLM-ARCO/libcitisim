@@ -705,6 +705,7 @@ class PropertyMixin:
         manager = PS.PropertyServerPrx.checkedCast(manager)
         return manager.set(path, value)
 
+
 class PropertyServerTests(PropertyMixin, TestCase):
     def setUp(self):
         PropertyMixin.setUp(self)

@@ -19,6 +19,9 @@ source:
 tests:
 	nosetests3 test/*.py
 
+vagrant-tests:
+	vagrant ssh -c "cd /vagrant; make tests"
+
 install:
 	install -vd $(DESTDIR)$(PY2DIST)
 	install -v -m 444 $(SRC)/* $(DESTDIR)$(PY2DIST)
