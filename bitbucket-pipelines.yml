@@ -1,0 +1,12 @@
+image: debian:stretch
+
+pipelines:
+  default:
+    - step:
+        script:
+          - apt-get update
+          - apt-get install -y wget gnupg2
+          - wget -qO- http://pike.esi.uclm.es/add-pike-repo.sh | sh 
+          - apt-get install -y make python3-zeroc-ice libzeroc-ice-dev zeroc-ice-utils zeroc-icebox python3-nose python3-doublex libcitisim property-service-simple
+          - ln -s /usr/lib/x86_64-linux-gnu/libIceStormService.so.36 /usr/lib/x86_64-linux-gnu/libIceStormService.so #Somehow the installation doesn't link the library correctly
+          - make tests
