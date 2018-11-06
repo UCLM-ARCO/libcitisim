@@ -65,16 +65,23 @@ topic_types = {
 properties = {
     'units':              Cast(str,      desc='units of the readings'),
     'hw-range':           Cast(float, 2, desc='[min, max] allowed sensor values'),
-    'position':           Cast(float, 3, desc='[longitude, latitude, altitude] (only if fixed)'),
     'orientation':        Cast(float, 3, desc='[x, y, z]'),
     'manufacturer':       Cast(str),
     'deployment-date':    Cast(str,      desc='physical deployment date: 2001-01-01'),  # FXIME: add checker
     'last-revision-date': Cast(str,      desc='maintenance last revision date: 2001-01-01'),  # FIXME: add checker
-    'software-version':   Cast(str,      desc='running software version'),
-    'hardware-version':   Cast(str,      desc='device hw version'),
+    'sw-version':         Cast(str,      desc='running software version'),
+    'hw-version':         Cast(str,      desc='device hw version'),
+
+    # TO REMOVE
+    'position':           Cast(float, 3, desc='[longitude, latitude, altitude] (only if fixed)'),  # to geogash service
+    'place':              Cast(float, 3, desc='place textual identifier'),  # to geogash service
+
 
     # NEW
+    'interface':          Cast(str,      desc='Citisim SmartObject interface'),
     'asset':              Cast(str,      desc='icon or shape name (e: bulb)'),
+    'magnitude':          Cast(str),  # enumerate
+    'model':              Cast(str),
 }
 
 metadata = {
