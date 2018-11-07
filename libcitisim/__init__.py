@@ -48,6 +48,9 @@ handler = logging.StreamHandler()
 logger.addHandler(handler)
 handler.setFormatter(logging.Formatter('[%(name)s]:%(levelname)s %(message)s'))
 
+# Common Ice properties
+TOPICMANAGER_PROXY = 'TopicManager.Proxy'
+PROPERTYSERVER_PROXY = 'PropertyService.Proxy'
 
 # FIXME: merge with datamodel/Cast
 class Cast:
@@ -239,10 +242,8 @@ class Broker:
                 self._ic = Ice.initialize([sys.argv[0], "--Ice.Config=" + arg])
             elif isinstance(arg, list):
                 self._ic = Ice.initialize(arg)
-            elif isinstance(arg, Ice.CommunicatorI):
-                self._ic = arg
             else:
-                raise Exception("Broker argument should be filename (str) or command line (str list) or Ice.Communicator instance")
+                raise Exception("Broker argument should be filename (str) or command line (str list)")
 
         self._adapter = None
 
@@ -266,6 +267,12 @@ class Broker:
             self._adapter.activate()
             eps = props.getProperty("Adapter.Endpoints")
             logger.info("adapter created with endpoints '{}'".format(eps))
+
+        self._set_default_properties(props)
+
+    def _set_default_properties(self, props):
+        if not props.getProperty(TOPICMANAGER_PROXY):
+            props.setProperty(TOPICMANAGER_PROXY, 'IceStorm/TopicManager')
 
     def __del__(self):
         if self._adapter is not None:
@@ -320,10 +327,10 @@ class Broker:
 
     def _get_topic_manager(self):
         if not hasattr(self, "_topic_manager"):
-            manager = self._ic.propertyToProxy("TopicManager.Proxy")
+            manager = self._ic.propertyToProxy(TOPICMANAGER_PROXY)
             if manager is None:
                 raise ValueError(
-                    "Missing configuration property: TopicManager.Proxy")
+                    "Missing configuration property: {}".format(TOPICMANAGER_PROXY))
 
             self._topic_manager = IceStorm.TopicManagerPrx.checkedCast(manager)
         return self._topic_manager
@@ -339,10 +346,10 @@ class Broker:
 
     def _get_property_manager(self):
         if not hasattr(self, "_property_manager"):
-            manager = self._ic.propertyToProxy("PropertyService.Proxy")
+            manager = self._ic.propertyToProxy(PROPERTYSERVER_PROXY)
             if manager is None:
                 raise ValueError(
-                    "Missing configuration property: TopicManager.Proxy")
+                    "Missing configuration property: {}".format(PROPERTYSERVER_PROXY))
 
             self._property_manager = PS.PropertyServerPrx.checkedCast(manager)
         return self._property_manager

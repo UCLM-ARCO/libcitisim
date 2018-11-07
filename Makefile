@@ -20,6 +20,7 @@ tests:
 	nosetests3 test/*.py
 
 vagrant-tests:
+	vagrant up
 	vagrant ssh -c "cd /vagrant; make tests"
 
 install:

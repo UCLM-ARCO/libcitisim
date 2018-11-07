@@ -832,3 +832,15 @@ class PropertyServerTests(PropertyMixin, TestCase):
         assert_that(
             calling(self.broker.set_property).with_args(path, value,
                 process_event), raises(TypeError))
+
+
+class DefaultPropertyTests(TestCase):
+    def test_default_topicmanager_proxy(self):
+        sut = libcitisim.Broker('')
+
+        try:
+            print(sut._get_topic_manager())
+        except ValueError:
+            self.fail("Default 'TopicManager.Proxy' property not set")
+        except Ice.NoEndpointException:
+            pass
