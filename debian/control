@@ -2,13 +2,14 @@ Source: libcitisim
 Section: utils
 Priority: optional
 Maintainer: David Villa Alises <David.Villa@gmail.com>
-Uploaders: Oscar Aceña Herrera <oscaracena@gmail.com>
-Build-Depends: debhelper (>= 7.0.50~), , python-all, python3-all, quilt
-Standards-Version: 4.1.1
+Uploaders: Oscar Aceña Herrera <oscaracena@gmail.com>,
+	   Jose Ignacio Mota Ortiz <joseignacio.mota@uclm.es>
+Build-Depends: debhelper (>= 9), python, python3, quilt, dh-python
+Standards-Version: 4.2.1
 
 Package: libcitisim
 Architecture: all
-Depends: ${misc:Depends}, python-all, python3-all, citisim-slice, property-service-slice
+Depends: ${misc:Depends}, python, python3, citisim-slice, property-service-slice
 Suggests: python3-zeroc-ice
 Description: Citisim library to easy usage
  This library provide access so some utilities to create MetaData,
