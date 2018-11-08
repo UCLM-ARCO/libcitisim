@@ -82,6 +82,7 @@ properties = {
     'asset':              Cast(str,      desc='icon or shape name (e: bulb)'),
     'magnitude':          Cast(str),  # enumerate
     'model':              Cast(str),
+    'delta':              Cast(int,      desc='Number of seconds between updates')
 }
 
 metadata = {

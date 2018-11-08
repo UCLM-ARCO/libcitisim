@@ -10,6 +10,7 @@ import IceStorm
 from ipaddress import ip_address
 
 from . import datamodel
+from .util import memoizedproperty
 
 PWD = os.path.dirname(__file__)
 SLICE_DIR = os.path.join(PWD, "../../../slice")
@@ -48,7 +49,8 @@ handler = logging.StreamHandler()
 logger.addHandler(handler)
 handler.setFormatter(logging.Formatter('[%(name)s]:%(levelname)s %(message)s'))
 
-# Common Ice properties
+# Common Ice property names
+WELCOME_PROXY = "Welcome.Proxy"
 TOPICMANAGER_PROXY = 'TopicManager.Proxy'
 PROPERTYSERVER_PROXY = 'PropertyService.Proxy'
 
@@ -263,8 +265,7 @@ class Broker:
 
         # normal adapter creation
         elif props.getProperty("Adapter.Endpoints"):
-            self._adapter = self._ic.createObjectAdapter("Adapter")
-            self._adapter.activate()
+            self.create_adapter()
             eps = props.getProperty("Adapter.Endpoints")
             logger.info("adapter created with endpoints '{}'".format(eps))
 
@@ -273,6 +274,24 @@ class Broker:
     def _set_default_properties(self, props):
         if not props.getProperty(TOPICMANAGER_PROXY):
             props.setProperty(TOPICMANAGER_PROXY, 'IceStorm/TopicManager')
+
+        if not props.getProperty(WELCOME_PROXY):
+            props.setProperty(WELCOME_PROXY, 'Welcome')
+
+    def create_adapter(self):
+        if self._adapter is None:
+            self._adapter = self._ic.createObjectAdapter("Adapter")
+            self._adapter.activate()
+
+        return self._adapter
+
+    @memoizedproperty
+    def welcome_server(self):
+        proxy = self._ic.propertyToProxy(WELCOME_PROXY)
+        return SmartObject.WelcomeServicePrx.uncheckedCast(proxy.ice_oneway())
+
+    def hi(self, address):
+        self.welcome_server.hi(address)
 
     def __del__(self):
         if self._adapter is not None:
@@ -353,3 +372,7 @@ class Broker:
 
             self._property_manager = PS.PropertyServerPrx.checkedCast(manager)
         return self._property_manager
+
+
+def normalize_addr(address):
+    return address.replace(':', '')
