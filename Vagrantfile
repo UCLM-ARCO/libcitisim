@@ -4,11 +4,25 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/contrib-stretch64"
 
-  config.vm.provision "shell", inline: <<-SHELL
-     apt-get update
-     apt-get install wget gnupg2
-     wget -qO- http://pike.esi.uclm.es/add-pike-repo.sh | sh
-     apt-get update
-     apt-get install -y make zeroc-ice36 python3-nose python3-doublex python3-prego property-service-simple citisim-slice
-   SHELL
+  config.vm.provider :virtualbox do |vb|
+    vb.memory = 4096
+    vb.cpus = 2
+  end
+
+  config.vm.define "ice36" do |node|
+    node.vm.hostname = "ice36"
+    node.vm.provision "ansible" do |ansible|
+      ansible.verbose = "v"
+      ansible.playbook = "playbook-ice36.yml"
+    end
+  end
+
+  config.vm.define "ice37" do |node|
+    node.vm.hostname = "ice37"
+    node.vm.provision "ansible" do |ansible|
+      ansible.verbose = "v"
+      ansible.playbook = "playbook-ice37.yml"
+    end
+  end
+
 end

@@ -19,9 +19,9 @@ source:
 tests:
 	nosetests3 test/*.py
 
-vagrant-tests:
-	vagrant up
-	vagrant ssh -c "cd /vagrant; make tests"
+vagrant-ice36-tests:
+	vagrant up ice36
+	vagrant ssh ice36 -c "cd /vagrant; make tests"
 
 install:
 	install -vd $(DESTDIR)$(PY2DIST)
