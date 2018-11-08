@@ -17,6 +17,7 @@ Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 
 import SmartObject
 
+
 class Cast:
     def __init__(self, type_, n=1, desc='', checker=None):
         self.type = type_
@@ -26,7 +27,10 @@ class Cast:
             self.type = list
             self.item_type = type_
 
-# FIXME: Consider using PropertyService for topic-type mapping
+    def check(self, value):
+        if not self.checker(value):
+            raise TypeError("'{}' should be of type '{}'".format(value, self.type))
+
 topic_types = {
     "ActivePower": SmartObject.AnalogSink,
     "AirPollutants1": SmartObject.AnalogSink,
@@ -62,8 +66,18 @@ topic_types = {
     "Twilight": SmartObject.DigitalSink,
 }
 
+
+def check_enum(values):
+    return lambda x: x in values
+
+UNITS = [
+    'wats', 'celsius', 'kWh', '%', 'ppm'
+]
+
 properties = {
-    'units':              Cast(str,      desc='units of the readings'),
+    'units':              Cast(str, checker=check_enum(UNITS),
+                               desc='units of the readings'),
+                              
     'hw-range':           Cast(float, 2, desc='[min, max] allowed sensor values'),
     'orientation':        Cast(float, 3, desc='[x, y, z]'),
     'manufacturer':       Cast(str),
@@ -74,14 +88,13 @@ properties = {
 
     # TO REMOVE
     'position':           Cast(float, 3, desc='[longitude, latitude, altitude] (only if fixed)'),  # to geogash service
-    'place':              Cast(float, 3, desc='place textual identifier'),  # to geogash service
-
+    'place':              Cast(str,      desc='place textual identifier'),  # to geogash service
 
     # NEW
     'interface':          Cast(str,      desc='Citisim SmartObject interface'),
     'asset':              Cast(str,      desc='icon or shape name (e: bulb)'),
     'magnitude':          Cast(str),  # enumerate
-    'model':              Cast(str),
+    'model':              Cast(str,      desc='Device model'),
     'delta':              Cast(int,      desc='Number of seconds between updates')
 }
 

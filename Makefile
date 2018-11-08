@@ -20,7 +20,9 @@ tests:
 	nosetests3 test/*.py
 
 vagrant-ice36-tests:
-	vagrant up ice36
+	@if vagrant status ice36 | grep "^ice36" | grep -v running; then \
+	    vagrant up ice36; \
+	fi
 	vagrant ssh ice36 -c "cd /vagrant; make tests"
 
 install:

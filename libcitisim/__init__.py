@@ -55,11 +55,11 @@ TOPICMANAGER_PROXY = 'TopicManager.Proxy'
 PROPERTYSERVER_PROXY = 'PropertyService.Proxy'
 
 # FIXME: merge with datamodel/Cast
-class Cast:
+""" class Cast:
     def __init__(self, type_, checker=None):
         self.type = type_
         self.checker = checker or (lambda x: True)
-
+ """
 
 class MetadataHelper:
     name_to_field = {
@@ -80,8 +80,7 @@ class MetadataHelper:
             if value is None:
                 continue
 
-            if not cast.checker(value):
-                raise TypeError(key)
+            cast.check(value)
 
             setattr(self, key, cast.type(value))
             del args[key]
@@ -272,12 +271,18 @@ class Broker:
         self._set_default_properties(props)
 
     def _set_default_properties(self, props):
-        if not props.getProperty(TOPICMANAGER_PROXY):
-            props.setProperty(TOPICMANAGER_PROXY, 'IceStorm/TopicManager')
+        defaults = {
+            TOPICMANAGER_PROXY:   'IceStorm/TopicManager',
+            PROPERTYSERVER_PROXY: 'PropertyServer',
+            WELCOME_PROXY:        'Welcome',
+        }
 
-        if not props.getProperty(WELCOME_PROXY):
-            props.setProperty(WELCOME_PROXY, 'Welcome')
+        for key, value in defaults.items():
+            if not props.getProperty(key):
+                logging.info("Setting default value for property '{}' = '{}'".format(key, value))
+                props.setProperty(key, value)
 
+    # FIXME: memoize adapter?
     def create_adapter(self):
         if self._adapter is None:
             self._adapter = self._ic.createObjectAdapter("Adapter")
