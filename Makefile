@@ -25,6 +25,12 @@ vagrant-ice36-tests:
 	fi
 	vagrant ssh ice36 -c "cd /vagrant; make tests"
 
+vagrant-ice37-tests:
+	@if vagrant status ice37 | grep "^ice37" | grep -v running; then \
+	    vagrant up ice37; \
+	fi
+	vagrant ssh ice37 -c "cd /vagrant; make tests"
+
 install:
 	install -vd $(DESTDIR)$(PY2DIST)
 	install -v -m 444 $(SRC)/* $(DESTDIR)$(PY2DIST)
