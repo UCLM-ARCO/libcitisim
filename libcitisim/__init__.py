@@ -13,25 +13,17 @@ from . import datamodel
 from .util import memoizedproperty
 
 PWD = os.path.dirname(__file__)
-SLICE_DIR = os.path.join(PWD, "../../../slice")
-if not os.path.exists(SLICE_DIR):
+# FIXME: SLICE_DIR = os.path.join(PWD, "../../../slice")
+if True:  #if not os.path.exists(SLICE_DIR):
     if sys.platform == "win32":
-        SLICE_DIR = os.path.join(Ice.getSliceDir(), "citisim")
+        SLICE_DIR = Ice.getSliceDir()
     else:
-        SLICE_DIR = "/usr/share/slice/citisim/"
+        SLICE_DIR = "/usr/share/slice"
 
-Ice.loadSlice('{}/services.ice --all'.format(SLICE_DIR))
-Ice.loadSlice('{}/PersonTracker.ice --all'.format(SLICE_DIR))
-
-
-PROP_SLICE_DIR = os.path.join(PWD, "../../../slice")
-if not os.path.exists(PROP_SLICE_DIR):
-    if sys.platform == "win32":
-        PROP_SLICE_DIR = os.path.join(Ice.getSliceDir(), "PropertyService")
-    else:
-        PROP_SLICE_DIR = "/usr/share/slice/PropertyService/"
-
-Ice.loadSlice('{}/PropertyService.ice --all'.format(PROP_SLICE_DIR))
+Ice.loadSlice('{}/citisim/services.ice --all'.format(SLICE_DIR))
+Ice.loadSlice('{}/citisim/PersonTracker.ice --all'.format(SLICE_DIR))
+Ice.loadSlice('-I{0} {0}/citisim/wiring.ice --all'.format(SLICE_DIR))
+Ice.loadSlice('{}/PropertyService/PropertyService.ice --all'.format(SLICE_DIR))
 
 import PropertyService as PS
 import json
@@ -50,16 +42,17 @@ logger.addHandler(handler)
 handler.setFormatter(logging.Formatter('[%(name)s]:%(levelname)s %(message)s'))
 
 # Common Ice property names
-WELCOME_PROXY = "Welcome.Proxy"
+WELCOME_SERVER_PROXY = "Welcome.Proxy"
 TOPICMANAGER_PROXY = 'TopicManager.Proxy'
-PROPERTYSERVER_PROXY = 'PropertyService.Proxy'
+PROPERTY_SERVER_PROXY = 'PropertyService.Proxy'  # FIXME: should be "PropertyServer.Proxy"
+WIRING_SERVER_PROXY = 'WiringServer.Proxy'
 
-# FIXME: merge with datamodel/Cast
-""" class Cast:
-    def __init__(self, type_, checker=None):
-        self.type = type_
-        self.checker = checker or (lambda x: True)
- """
+default_config = {
+    TOPICMANAGER_PROXY:    'IceStorm/TopicManager',
+    PROPERTY_SERVER_PROXY: 'PropertyServer',
+    WELCOME_SERVER_PROXY:  'WelcomeServer',
+    WIRING_SERVER_PROXY:   'WiringServer'
+}
 
 class MetadataHelper:
     name_to_field = {
@@ -153,9 +146,9 @@ class EventWithValueMixin:
         except TypeError as e:
             logger.error(e)
             logger.error(
-                "There were some error on provided callback, do you "
+                "There were some error on provided callback '{}', do you "
                 "provide the right signature?\n"
-                "Expected signature: 'def callback(value, source, metadata)'")
+                "Expected signature: 'def callback(value, source, metadata)'".format(self._callback))
 
 
 class AnalogSinkI(SmartObject.AnalogSink, EventWithValueMixin):
@@ -219,7 +212,7 @@ class ADPublisher:
         )
 
     def _retrieve_publisher(self):
-        topic = self._broker._get_topic(self._topic_name)
+        topic = self._broker.get_topic(self._topic_name)
         publisher = topic.getPublisher()
         cast = self._broker.proxy_types[self._type]
         self._publisher = cast.uncheckedCast(publisher)
@@ -246,75 +239,87 @@ class Broker:
             else:
                 raise Exception("Broker argument should be filename (str) or command line (str list)")
 
-        self._adapter = None
-
-        props = self._ic.getProperties()
-        self._is_bidir = props.getProperty("LibCitisim.UseBiDir") == "True"
+        self.props = self._ic.getProperties()
+        self._is_bidir = self.props.getProperty("LibCitisim.UseBiDir") == "True"
 
         # enable logging, if specified to do so
-        if props.getProperty("LibCitisim.Debug") == "True":
+        if self.props.getProperty("LibCitisim.Debug") == "True":
             logger.setLevel(logging.DEBUG)
             logger.debug("debug mode active")
 
-        # support for bidir communications
+        self._set_default_properties()
+
+    def _set_default_properties(self):
+        for key, value in default_config.items():
+            if not self.props.getProperty(key):
+                logging.info("Setting default value for property '{}' = '{}'".format(key, value))
+                self.props.setProperty(key, value)
+
+    # FIXME: deprecated
+    def create_adapter(self):
+        logging.warning("Method create_adapter() is deprecated. User .adapter. property instead.")
+        return self.adapter
+
+    @memoizedproperty
+    def adapter(self):
         if self._is_bidir:
-            self._adapter = self._ic.createObjectAdapter("")
-            self._adapter.activate()
+            adapter_name = ""
             logger.info("using bi-dir connections")
 
-        # normal adapter creation
-        elif props.getProperty("Adapter.Endpoints"):
-            self.create_adapter()
-            eps = props.getProperty("Adapter.Endpoints")
-            logger.info("adapter created with endpoints '{}'".format(eps))
+        else:
+            adapter_name = "Adapter"
+            endpoints = self.props.getProperty("Adapter.Endpoints")
+            if not endpoints:
+                raise RuntimeError(
+                    "You must provide the 'Adapter.Endpoints' configuration property.")
 
-        self._set_default_properties(props)
+            logger.info("creating adapter with endpoints: '{}'".format(endpoints))
 
-    def _set_default_properties(self, props):
-        defaults = {
-            TOPICMANAGER_PROXY:   'IceStorm/TopicManager',
-            PROPERTYSERVER_PROXY: 'PropertyServer',
-            WELCOME_PROXY:        'Welcome',
-        }
+        adapter = self._ic.createObjectAdapter(adapter_name)
+        adapter.activate()
+        self._adapter_created = True
 
-        for key, value in defaults.items():
-            if not props.getProperty(key):
-                logging.info("Setting default value for property '{}' = '{}'".format(key, value))
-                props.setProperty(key, value)
+        return adapter
 
-    # FIXME: memoize adapter?
-    def create_adapter(self):
-        if self._adapter is None:
-            self._adapter = self._ic.createObjectAdapter("Adapter")
-            self._adapter.activate()
+    def adapter_add(self, servant, identity)    :
+        if not isinstance(identity, Ice.Identity):
+            identity = self._ic.stringToIdentity(normalize_addr(identity))
 
-        return self._adapter
+        return self.adapter.add(servant, identity)
 
     @memoizedproperty
     def welcome_server(self):
-        proxy = self._ic.propertyToProxy(WELCOME_PROXY)
+        proxy = self._ic.propertyToProxy(WELCOME_SERVER_PROXY)
+        if proxy is None:
+            raise RuntimeError(
+                "You must provide the '{}' configuration property.".format(WELCOME_SERVER_PROXY))
+
         return SmartObject.WelcomeServicePrx.uncheckedCast(proxy.ice_oneway())
+
+    @memoizedproperty
+    def wiring_server(self):
+        proxy = self._ic.propertyToProxy(WIRING_SERVER_PROXY)
+        if proxy is None:
+            raise RuntimeError(
+                "You must provide the '{}' configuration property.".format(WIRING_SERVER_PROXY))
+
+        return SmartObject.WiringServicePrx.checkedCast(proxy)
 
     def hi(self, address):
         self.welcome_server.hi(address)
 
     def __del__(self):
-        if self._adapter is not None:
-            self._adapter.deactivate()
+        if hasattr(self, '_adapter_created'):
+            self.adapter.deactivate()
         self._ic.destroy()
 
     def subscribe(self, topic_name, callback):
-        if self._adapter is None:
-            raise RuntimeError(
-                "In order to subscribe an object, you need to provide "
-                "the 'Adapter.Endpoints' configuration property.")
-
         proxy = self._get_servant_proxy(topic_name, callback)
-        topic = self._get_topic(topic_name)
+        topic = self.get_topic(topic_name)
 
         # support for bidir connections
         if self._is_bidir:
-            topic.ice_getConnection().setAdapter(self._adapter)
+            topic.ice_getConnection().setAdapter(self.adapter)
 
         topic.subscribeAndGetPublisher({}, proxy)
 
@@ -337,27 +342,26 @@ class Broker:
             raise ValueError("Unknown topic name: {}".format(topic_name))
 
         servant = self.servant_types[type_](topic_name, callback)
-        proxy = self._adapter.addWithUUID(servant)
+        proxy = self.adapter.addWithUUID(servant)
         if proxy.ice_isTwoway():
             proxy = proxy.ice_oneway()
         return proxy
 
-    def _get_topic(self, name):
-        manager = self._get_topic_manager()
+    def get_topic(self, name):
+        manager = self.topic_manager
         try:
             return manager.retrieve(name)
         except IceStorm.NoSuchTopic:
             return manager.create(name)
 
-    def _get_topic_manager(self):
-        if not hasattr(self, "_topic_manager"):
-            manager = self._ic.propertyToProxy(TOPICMANAGER_PROXY)
-            if manager is None:
-                raise ValueError(
-                    "Missing configuration property: {}".format(TOPICMANAGER_PROXY))
+    @memoizedproperty
+    def topic_manager(self):
+        proxy = self._ic.propertyToProxy(TOPICMANAGER_PROXY)
+        if proxy is None:
+            raise ValueError(
+                "You must provide the '{}' configuration property.".format(TOPICMANAGER_PROXY))
 
-            self._topic_manager = IceStorm.TopicManagerPrx.checkedCast(manager)
-        return self._topic_manager
+        return IceStorm.TopicManagerPrx.checkedCast(proxy)
 
     def set_property(self, path, value):
         serialized_value = json.dumps(value)
@@ -370,10 +374,10 @@ class Broker:
 
     def _get_property_manager(self):
         if not hasattr(self, "_property_manager"):
-            manager = self._ic.propertyToProxy(PROPERTYSERVER_PROXY)
+            manager = self._ic.propertyToProxy(PROPERTY_SERVER_PROXY)
             if manager is None:
                 raise ValueError(
-                    "Missing configuration property: {}".format(PROPERTYSERVER_PROXY))
+                    "Missing configuration property: {}".format(PROPERTY_SERVER_PROXY))
 
             self._property_manager = PS.PropertyServerPrx.checkedCast(manager)
         return self._property_manager

@@ -839,7 +839,7 @@ class DefaultPropertyTests(TestCase):
         sut = libcitisim.Broker('')
 
         try:
-            print(sut._get_topic_manager())
+            print(sut.topic_manager)
         except ValueError:
             self.fail("Default 'TopicManager.Proxy' property not set")
         except Ice.NoEndpointException:
@@ -852,4 +852,4 @@ class PropertyCastTests(TestCase):
 
     def test_wrong_unit(self):
         with self.assertRaises(TypeError):
-            libcitisim.datamodel.properties['units'].check('wrong')        
+            libcitisim.datamodel.properties['units'].check('wrong')

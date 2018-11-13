@@ -71,7 +71,17 @@ def check_enum(values):
     return lambda x: x in values
 
 UNITS = [
-    'wats', 'celsius', 'kWh', '%', 'ppm'
+    'wats',
+    'celsius',
+    'kWh',
+    '%',
+    'ppm',
+]
+
+MAGNITUDES = [
+    'electrical-power',
+    'temperature',
+    'humidity',
 ]
 
 properties = {
@@ -91,19 +101,24 @@ properties = {
     'place':              Cast(str,      desc='place textual identifier'),  # to geogash service
 
     # NEW
-    'interface':          Cast(str,      desc='Citisim SmartObject interface'),
+    'interface':          Cast(str,      desc='citisim SmartObject interface'),
     'asset':              Cast(str,      desc='icon or shape name (e: bulb)'),
-    'magnitude':          Cast(str),  # enumerate
-    'model':              Cast(str,      desc='Device model'),
-    'delta':              Cast(int,      desc='Number of seconds between updates')
+    'magnitude':          Cast(str,      desc='physical magnitude', checker=check_enum(MAGNITUDES)),
+    'model':              Cast(str,      desc='device model'),
+    'delta':              Cast(int,      desc='number of seconds between updates'),
+    'common-channel':     Cast(str,      desc='common public topic name where event will be sent'),
+    'observable':         Cast(bool,     desc='True if a publisher implements SmartObject::Observable'),
+    'derive-from':        Cast(str,      desc='Physical sensor identity for a virtual sensor'),
+
+    'wiring:observers':   Cast(list,     desc='List of observer for an observable (managed by the wiring service')
 }
 
 metadata = {
     'timestamp':  Cast(int),
     'quality':    Cast(int, checker=lambda x: 0 <= x <= 256),
-    'expiration': Cast(int, checker=lambda x: 0 <= x <= 2**15 - 1),
+    'expiration': Cast(int,     desc='validity for the sent value (in seconds)', checker=lambda x: 0 <= x <= 2**15 - 1),
     'latitude':   Cast(float),
     'longitude':  Cast(float),
     'altitude':   Cast(float),
-    'place':      Cast(str)
+    'place':      Cast(str,     desc='Standard placeID'),
 }

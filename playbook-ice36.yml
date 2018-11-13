@@ -23,3 +23,4 @@
         - python3-prego
         - property-service-simple
         - citisim-slice
+        - citisim-wiring-service
