@@ -15,12 +15,16 @@ Installation of the library from repository
 
 In the root of the repo, execute the command:
 
+```sh
 $ python3 setup.py sdist
+```
 
 This command generates, inside folder dist, a source distribution (e.g. libcitisim-0.20180605.tar.gz) that can be installed with tools like pip:
 
+```sh
 $ pip3 install dist/libcitisim-0.20180605.tar.gz
 .
 .
 Successfully installed libcitisim-0.20180605
+```
 
