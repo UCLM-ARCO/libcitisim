@@ -1,3 +1,9 @@
+libcitisim (0.20181127.1-1) unstable; urgency=low
+
+  * New release, WelcomeService: hi -> hello
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 27 Nov 2018 10:46:46 +0100
+
 libcitisim (0.20181127-1) unstable; urgency=low
 
   * New release, aded normalize_addr() and other changes

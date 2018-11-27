@@ -305,8 +305,8 @@ class Broker:
 
         return SmartObject.WiringServicePrx.checkedCast(proxy)
 
-    def hi(self, address):
-        self.welcome_server.hi(address)
+    def hello(self, address):
+        self.welcome_server.hello(address)
 
     def __del__(self):
         if hasattr(self, '_adapter_created'):
