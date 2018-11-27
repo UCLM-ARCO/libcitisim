@@ -1,3 +1,9 @@
+libcitisim (0.20181127-1) unstable; urgency=low
+
+  * New release, aded normalize_addr() and other changes
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 27 Nov 2018 10:40:00 +0100
+
 libcitisim (0.20181105-1) unstable; urgency=low
 
   * New release, topic_types transferred to datamodel.py
