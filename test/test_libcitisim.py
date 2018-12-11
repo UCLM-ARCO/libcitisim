@@ -195,6 +195,7 @@ class CommonSubscriberTests(AnalogEventsMixin, TestCase):
                 "UnknownTopic", process_event),
             raises(ValueError))
 
+        # FIXME: this is a publish test, should not go here!
         assert_that(
             calling(self.broker.publish).
             with_args("Temperature", 123.5, meta={"quality": "invalidvalue"}),
