@@ -41,8 +41,14 @@ namespace LibCitisim {
                     ev.Set();
                 }
             });
+            isServer.ErrorDataReceived += new DataReceivedEventHandler((sender, e) => {
+                if (!String.IsNullOrEmpty(e.Data)) {
+                    Console.WriteLine("ERROR:" + e.Data);
+                }
+            });
             Assert.True(isServer.Start());
             isServer.BeginOutputReadLine();
+            isServer.BeginErrorReadLine();
 
             ev.WaitOne(5000);
             if (isServer.HasExited) {

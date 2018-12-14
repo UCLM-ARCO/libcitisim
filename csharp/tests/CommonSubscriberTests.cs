@@ -49,15 +49,16 @@ namespace LibCitisim {
 
     public class AnalogEventsMixin : EventsFixture {
 
-        protected void _PublishEvent(string topicName, string source="", StringDict meta=null) {
+        protected void PublishEvent(string topicName, string source="", StringDict meta=null) {
             var topic = GetTopic(topicName);
             var prx = topic.getPublisher();
-            // Metadata meta_ = new Metadata();
-            // if (meta != null)
-            //     meta_ = MetadataHelper.FromDict(meta);
+            Metadata meta_ = new Metadata();
+            if (meta != null)
+                 meta_ = MetadataUtil.FromDict(meta);
             SmartObject.AnalogSinkPrx publisher =
                 SmartObject.AnalogSinkPrxHelper.uncheckedCast(prx);
-            publisher.notify(123.4f, "Test", null);
+            publisher.notify(123.4f, "Test", meta_);
+            Console.WriteLine(">>> event published (using: {0})", publisher);
         }
     }
 
@@ -80,7 +81,7 @@ namespace LibCitisim {
             };
 
             broker.Subscribe("WindVane", ProcessEvent);
-            _PublishEvent("WindVane", meta: new StringDict(){{"quality", "123"}});
+            PublishEvent("WindVane", meta: new StringDict(){{"quality", "123"}});
             Assert.True(called.WaitOne(2000));
         }
     }
