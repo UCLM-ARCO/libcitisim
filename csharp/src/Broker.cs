@@ -16,7 +16,7 @@ namespace LibCitisim {
 
     public class Logger {
         private string name;
-        private int level = 8;
+        private int level = 6;
         private static Dictionary<string, Logger> instances = new Dictionary<string, Logger>();
 
         Logger(string name) {
@@ -134,10 +134,6 @@ namespace LibCitisim {
 
     public class Broker {
 
-        private static Dictionary<Type, Type> ServantTypes = new Dictionary<Type, Type> {
-            {typeof(SmartObject.AnalogSink), typeof(AnalogSinkI)}
-        };
-
         private Ice.ObjectAdapter _adapter;
         private IceStorm.TopicManagerPrx _topicManager;
 
@@ -145,6 +141,11 @@ namespace LibCitisim {
         private Ice.Properties props;
         private bool isBidir;
         private Logger logger;
+
+        private static Dictionary<Type, Type> ServantTypes =
+            new Dictionary<Type, Type> {
+                {typeof(SmartObject.AnalogSink), typeof(AnalogSinkI)}
+            };
 
         public Broker(string config, Ice.Communicator ic=null) :
             this(new string[] {"", "--Ice.Config=" + config}, ic) {
@@ -158,7 +159,14 @@ namespace LibCitisim {
             props = this.ic.getProperties();
             isBidir = props.getProperty("LibCitisim.UseBiDir").Equals("True");
             logger = Logger.GetLogger("libcitisim");
-            logger.SetLevel("debug");
+
+            // enable logging, if specified to do so
+            if (GetProperty("LibCitisim.Debug", false) == "True") {
+                logger.SetLevel("debug");
+                logger.Debug("debug mode active");
+            }
+
+            // self._set_default_properties()
         }
 
         ~Broker() {
@@ -170,7 +178,7 @@ namespace LibCitisim {
         private string GetProperty(string key, bool required=true) {
             string value = props.getProperty(key);
             if (required && string.IsNullOrEmpty(value))
-                throw new ArgumentException("missing configuration property: '" + key + "'");
+                throw new ArgumentException($"missing configuration property: {key}");
             return value;
         }
 
@@ -185,7 +193,7 @@ namespace LibCitisim {
                 else {
                     adapterName = "Adapter";
                     string endpoints = GetProperty("Adapter.Endpoints");
-                    logger.Info("creating adapter with endpoints: '" + endpoints + "'");
+                    logger.Info($"creating adapter with endpoints: '{endpoints}'");
                 }
 
                 _adapter = ic.createObjectAdapter(adapterName);
@@ -213,13 +221,13 @@ namespace LibCitisim {
             if (isBidir)
                 topic.ice_getConnection().setAdapter(_adapter);
             topic.subscribeAndGetPublisher(null, proxy);
-            logger.Info(string.Format("topic: {0}, subscribed proxy: '{1}'", topicName, proxy));
+            logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
         }
 
         private Ice.ObjectPrx GetServantProxy(string topicName, AnalogSubscriber callback) {
             Type type;
             if (!DataModel.TopicTypes.TryGetValue(topicName, out type)) {
-                throw new ArgumentException("unknown topic name: '" + topicName + "'");
+                throw new ArgumentException($"unknown topic name: '{topicName}'");
             }
 
             Ice.Object servant = (Ice.Object)Activator.CreateInstance(
