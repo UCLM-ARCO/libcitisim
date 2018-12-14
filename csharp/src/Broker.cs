@@ -132,6 +132,34 @@ namespace LibCitisim {
         }
     }
 
+    internal class ADPublisher {
+        private Broker broker;
+        private string topicName;
+        private string source;
+        private Metadata meta;
+        private Type type;
+        private dynamic publisher;
+
+        public ADPublisher(Broker broker, string topicName, string source="", Metadata meta=null) {
+            if (string.IsNullOrEmpty(source))
+                source = Guid.NewGuid().ToString("N").Substring(0, 8);
+            if (meta == null)
+                meta = new Metadata();
+
+            this.broker = broker;
+            this.topicName = topicName;
+            this.source = source;
+            this.meta = meta;
+
+            if (!DataModel.TopicTypes.TryGetValue(topicName, out type))
+                throw new ArgumentException($"Unknown topic name: '{topicName}'");
+        }
+
+        internal void Publish(dynamic value) {
+            throw new NotImplementedException();
+        }
+    }
+
     public class Broker {
 
         private Ice.ObjectAdapter _adapter;
@@ -222,6 +250,11 @@ namespace LibCitisim {
                 topic.ice_getConnection().setAdapter(_adapter);
             topic.subscribeAndGetPublisher(null, proxy);
             logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
+        }
+
+        public void Publish(string topicName, dynamic value, string source="", Metadata meta=null) {
+            var p = new ADPublisher(this, topicName, source, meta);
+            p.Publish(value);
         }
 
         private Ice.ObjectPrx GetServantProxy(string topicName, AnalogSubscriber callback) {
