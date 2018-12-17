@@ -94,8 +94,12 @@ namespace LibCitisim {
                 args.Remove(item.Key);
             }
 
-            if (args.Count > 0)
-                throw new ArgumentException($"invalid meta: {args}");
+            if (args.Count > 0) {
+                string invalid = "";
+                foreach(var a in args)
+                    invalid += $"{a.Key},";
+                throw new ArgumentException($"invalid meta fields: {invalid}");
+            }
             return meta;
         }
     }
@@ -118,12 +122,17 @@ namespace LibCitisim {
 
         public override void notify(float value, string source, Metadata meta, Current current=null) {
             try {
-                var strMeta = MetadataUtil.FromMetadata(meta);
+                string strmeta = "{";
+                foreach (var i in meta)
+                    strmeta += $"{i.Key}: '{i.Value}',";
+                strmeta += "}";
                 logger.Debug(string.Format(
                     "event arrived on '{0}, value: {1}, source: {2}, meta: {3}",
-                    topicName, value, source, meta
+                    topicName, value, source, strmeta
                 ));
-                callback(value, source, strMeta);
+
+                var dictmeta = MetadataUtil.FromMetadata(meta);
+                callback(value, source, dictmeta);
             }
             catch (ArgumentException e) {
                 logger.Error(e.ToString());
@@ -133,18 +142,20 @@ namespace LibCitisim {
     }
 
     internal class ADPublisher {
+        private Logger logger = Logger.GetLogger("libcitisim");
+
         private Broker broker;
         private string topicName;
         private string source;
-        private Metadata meta;
+        private StringDict meta;
         private Type type;
         private dynamic publisher;
 
-        public ADPublisher(Broker broker, string topicName, string source="", Metadata meta=null) {
+        public ADPublisher(Broker broker, string topicName, string source="", StringDict meta=null) {
             if (string.IsNullOrEmpty(source))
                 source = Guid.NewGuid().ToString("N").Substring(0, 8);
             if (meta == null)
-                meta = new Metadata();
+                meta = new StringDict();
 
             this.broker = broker;
             this.topicName = topicName;
@@ -155,10 +166,43 @@ namespace LibCitisim {
                 throw new ArgumentException($"Unknown topic name: '{topicName}'");
         }
 
-        internal void Publish(dynamic value) {
-            throw new NotImplementedException();
+        internal void Publish(dynamic value, string source=null, StringDict meta=null) {
+            if (publisher is null)
+                RetrievePublisher();
+            if (source is null)
+                source = this.source;
+            if (meta is null)
+                meta = this.meta;
+
+            // if there is "timestamp" but explicitly set to None, then
+            // remove ts from meta, otherwise (there is no "timestamp" key
+            // in meta), set it as now
+            if (! meta.ContainsKey("timestamp"))
+                meta["timestamp"] = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds().ToString();
+            else if (meta["timestamp"] is null)
+                meta.Remove("timestamp");
+
+            var meta_ = MetadataUtil.FromDict(meta);
+            publisher.notify(value, source, meta_);
+
+            string strmeta = "{";
+            foreach (var i in meta_)
+                strmeta += $"{i.Key}: '{i.Value}',";
+            strmeta += "}";
+            logger.Debug(
+                $"publish event on '{topicName}', value: {value}, source: {source}, meta: {strmeta}"
+            );
+        }
+
+        private void RetrievePublisher() {
+            var topic = broker.GetTopic(topicName);
+            var publisher = topic.getPublisher();
+            ProxyCasting cast = Broker.ProxyTypes[type];
+            this.publisher = cast(publisher);
         }
     }
+
+    public delegate dynamic ProxyCasting(Ice.ObjectPrx value);
 
     public class Broker {
 
@@ -173,6 +217,13 @@ namespace LibCitisim {
         private static Dictionary<Type, Type> ServantTypes =
             new Dictionary<Type, Type> {
                 {typeof(SmartObject.AnalogSink), typeof(AnalogSinkI)}
+            };
+
+        internal static Dictionary<Type, ProxyCasting> ProxyTypes =
+            new Dictionary<Type, ProxyCasting> {
+                {typeof(SmartObject.AnalogSink), (prx) => {
+                    return SmartObject.AnalogSinkPrxHelper.uncheckedCast(prx);
+                }},
             };
 
         public Broker(string config, Ice.Communicator ic=null) :
@@ -194,7 +245,7 @@ namespace LibCitisim {
                 logger.Debug("debug mode active");
             }
 
-            // self._set_default_properties()
+            // FIXME: self._set_default_properties()
         }
 
         ~Broker() {
@@ -252,7 +303,7 @@ namespace LibCitisim {
             logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
         }
 
-        public void Publish(string topicName, dynamic value, string source="", Metadata meta=null) {
+        public void Publish(string topicName, dynamic value, string source="", StringDict meta=null) {
             var p = new ADPublisher(this, topicName, source, meta);
             p.Publish(value);
         }
@@ -271,7 +322,7 @@ namespace LibCitisim {
             return proxy;
         }
 
-        private TopicPrx GetTopic(string topicName) {
+        internal TopicPrx GetTopic(string topicName) {
             try {
                 return topicManager.retrieve(topicName);
             }

@@ -17,7 +17,7 @@ namespace LibCitisim {
             }
 
             public void check(string value) {
-                if (!checker(value))
+                if (checker != null && !checker(value))
                     throw new ArgumentException($"'{value}' should be of type '{type}'");
             }
         }
@@ -58,18 +58,26 @@ namespace LibCitisim {
         };
 
         public static Dictionary<string, Cast> Metadata = new Dictionary<string, Cast> {
-            // 'timestamp':  Cast(int),
-            // 'quality':    Cast(int, checker=lambda x: 0 <= x <= 256),
-            {"quality", new Cast(typeof(int), checker: (s) => {
+            {"timestamp", new Cast(typeof(int))},
+            {"quality", new Cast(
+                typeof(int),
+                checker: (s) => {
                     int v = Int32.Parse(s);
                     return (0 <= v && v <= 256);
                 })
-            }
-            // 'expiration': Cast(int,     desc='validity for the sent value (in seconds)', checker=lambda x: 0 <= x <= 2**15 - 1),
-            // 'latitude':   Cast(float),
-            // 'longitude':  Cast(float),
-            // 'altitude':   Cast(float),
-            // 'place':      Cast(str,     desc='Standard placeID'),
+            },
+            {"expiration", new Cast(
+                typeof(int),
+                desc: "validity for the sent value (in seconds)",
+                checker: (s) => {
+                    int v = Int32.Parse(s);
+                    return (0 <= v && v <= Math.Pow(2, 15) - 1);
+                })
+            },
+            {"latitude", new Cast(typeof(float))},
+            {"longitude", new Cast(typeof(float))},
+            {"altitude", new Cast(typeof(float))},
+            {"place", new Cast(typeof(string), desc: "Standard placeID")},
         };
     }
 }

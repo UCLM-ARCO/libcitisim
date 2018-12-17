@@ -11,6 +11,7 @@ namespace LibCitisim {
         protected Broker broker;
         private string pwd = Environment.GetEnvironmentVariable("TEST_DIR");
         private string config;
+        private Ice.ObjectAdapter adapter;
 
         public EventsFixture() {
             config = pwd + "/tests.config";
@@ -20,6 +21,9 @@ namespace LibCitisim {
             string[] args_ = args.ToArray();
             ic = Ice.Util.initialize(ref args_);
 
+            adapter = ic.createObjectAdapterWithEndpoints("adapter", "tcp -h 127.0.0.1 -p 9999");
+            adapter.activate();
+
             // the real subject under testing
             broker = new Broker(config);
         }
@@ -27,6 +31,7 @@ namespace LibCitisim {
         public void Dispose() {
             ic.shutdown();
             ic.destroy();
+            adapter.deactivate();
             Console.WriteLine(">>> disposed test");
         }
 
@@ -39,6 +44,16 @@ namespace LibCitisim {
             catch (IceStorm.NoSuchTopic) {
                 return manager.create(name);
             }
+        }
+
+        public void Subscribe(string topicName, Ice.ObjectPrx proxy) {
+            var topic = GetTopic(topicName);
+            topic.subscribeAndGetPublisher(null, proxy);
+            Console.WriteLine($">>> subscribe to '{topicName}', proxy: '{proxy}");
+        }
+
+        public Ice.ObjectPrx AdapterAdd(Ice.Object servant) {
+            return adapter.addWithUUID(servant);
         }
     }
 
