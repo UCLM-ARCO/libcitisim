@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
+using SmartObject;
 
 using StringDict = System.Collections.Generic.Dictionary<string, string>;
 using Metadata = System.Collections.Generic.Dictionary<SmartObject.MetadataField, string>;
-using System.Collections.Generic;
 
 namespace LibCitisim {
 
@@ -54,6 +55,26 @@ namespace LibCitisim {
 
         public Ice.ObjectPrx AdapterAdd(Ice.Object servant) {
             return adapter.addWithUUID(servant);
+        }
+
+        public Predicate<Metadata> CheckMeta(Metadata props) {
+            bool _partial(Metadata m) {
+                if (props is null || ! props.ContainsKey(MetadataField.Timestamp)) {
+                    var ts = DateTimeOffset.FromUnixTimeSeconds(
+                        long.Parse(m[MetadataField.Timestamp]));
+                    var delta = ((DateTimeOffset)DateTime.Now) - ts;
+                    if (delta.TotalSeconds > 2)
+                        return false;
+                }
+                if (props != null) {
+                    foreach (var item in props) {
+                        if (m[item.Key] != item.Value)
+                            return false;
+                    }
+                }
+                return true;
+            }
+            return _partial;
         }
     }
 
