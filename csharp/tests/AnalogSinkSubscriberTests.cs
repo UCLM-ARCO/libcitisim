@@ -7,12 +7,6 @@ namespace LibCitisim {
     [Collection("IceStorm Collection")]
     public class AnalogSinkSubscriberTests : AnalogEventsMixin {
 
-        // FIXME: this list is deprecated!
-        private List<string> knownTopics = new List<string> {
-            "Temperature", "Power", "Vibration", "WindVane", "PluviometerLastDay",
-            "Anemometer", "Battery", "CarbonDioxide", "Humidity", "Ozone",
-        };
-
         [Fact]
         public void SubscriberCallbackIsCalled() {
             EventWaitHandle called = new EventWaitHandle(false, EventResetMode.AutoReset);

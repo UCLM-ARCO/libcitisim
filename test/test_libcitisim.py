@@ -407,9 +407,9 @@ class AnalogSinkPublisherTests(AnalogEventsMixin, TestCase):
             with_args(123.5, meta={"quality": "invalidvalue"}),
             raises(TypeError))
 
-    def test_publisher_with_no_meta_just_once(self):
+    def test_publisher_with_no_timestamp_in_meta_just_once(self):
         # create a reusable publisher for the given topic, source as a
-        # random string, no meta
+        # random string, meta with no timestamp
         p = self.broker.get_publisher("Temperature", meta={"timestamp": None})
         p.publish(self.value)
 
@@ -438,7 +438,7 @@ class AnalogSinkPublisherTests(AnalogEventsMixin, TestCase):
             value += 5
 
 
-class DigitalSinkSinkSubscriberTests(DigitalEventsMixin, TestCase):
+class DigitalSinkSubscriberTests(DigitalEventsMixin, TestCase):
     def test_subscribe_callback_is_called(self):
         process_event = method_returning(None)
         self.broker.subscribe("Twilight", process_event)
@@ -629,9 +629,9 @@ class DigitalSinkPublisherTests(DigitalEventsMixin, TestCase):
             with_args(True, meta={"quality": "invalidvalue"}),
             raises(TypeError))
 
-    def test_publisher_with_no_meta_just_once(self):
+    def test_publisher_with_no_timestamp_in_meta_just_once(self):
         # create a reusable publisher for the given topic, source as a
-        # random string, no meta
+        # random string, no timestamp in meta
         p = self.broker.get_publisher(
             self.topic_name, meta={"timestamp": None})
         p.publish(self.value)
@@ -659,7 +659,7 @@ class DigitalSinkPublisherTests(DigitalEventsMixin, TestCase):
                 called().
                 with_args(value, anything(), anything(), anything()).
                 async(timeout=2))
-            value += 5
+            value = not value
 
 
 ps_slice_path = "/usr/share/slice/PropertyService/PropertyService.ice"
@@ -696,11 +696,13 @@ class PropertyMixin:
     def tearDown(self):
         self.ic.destroy()
 
+    # FIXME: make manager a memoized property!
     def _get_property(self, path):
         manager = self.ic.propertyToProxy("PropertyService.Proxy")
         manager = PS.PropertyServerPrx.checkedCast(manager)
         return manager.get(path)
 
+    # FIXME: make manager a memoized property!
     def _set_property(self, path, value):
         manager = self.ic.propertyToProxy("PropertyService.Proxy")
         manager = PS.PropertyServerPrx.checkedCast(manager)

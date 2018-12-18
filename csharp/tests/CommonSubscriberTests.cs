@@ -19,7 +19,7 @@ namespace LibCitisim {
         [Fact]
         public void SubscriberReceivedMetadata_WithStringfiedKeys() {
             EventWaitHandle called = new EventWaitHandle(false, EventResetMode.AutoReset);
-            AnalogSubscriber ProcessEvent = (value, source, meta) => {
+            ADSubscriber ProcessEvent = (value, source, meta) => {
                 Assert.True(meta.ContainsKey("quality"));
                 called.Set();
             };

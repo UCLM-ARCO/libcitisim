@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using Ice;
 using IceStorm;
+using Newtonsoft.Json;
+using PropertyService;
 using SmartObject;
 
 using Metadata = System.Collections.Generic.Dictionary<SmartObject.MetadataField, string>;
@@ -11,7 +13,22 @@ using StringDict = System.Collections.Generic.Dictionary<string, string>;
 namespace LibCitisim {
 
     internal class Constants {
-        public const string PROP_TOPIC_MANAGER_PROXY = "TopicManager.Proxy";
+        internal static readonly string PROP_WIRING_SERVER_PROXY =
+            "Welcome.Proxy";
+        internal static readonly string PROP_TOPIC_MANAGER_PROXY =
+            "TopicManager.Proxy";
+        internal static readonly string PROP_PROPERTY_SERVER_PROXY =
+            "PropertyService.Proxy";
+        internal static readonly string PROP_WELCOME_SERVER_PROXY =
+            "WiringServer.Proxy";
+
+        internal static readonly Dictionary<string, string> defaultConfig =
+            new Dictionary<string, string> {
+                {PROP_TOPIC_MANAGER_PROXY, "IceStorm/TopicManager"},
+                {PROP_PROPERTY_SERVER_PROXY, "PropertyServer"},
+                {PROP_WELCOME_SERVER_PROXY, "WelcomeServer"},
+                {PROP_WIRING_SERVER_PROXY, "WiringServer"}
+        };
     }
 
     public class Logger {
@@ -104,23 +121,23 @@ namespace LibCitisim {
         }
     }
 
-    public delegate void AnalogSubscriber(
-        float value, string source, Dictionary<string, string> meta
+    public delegate void ADSubscriber(
+        dynamic value, string source, Dictionary<string, string> meta
     );
 
-    public class AnalogSinkI : SmartObject.AnalogSinkDisp_ {
+    internal class EventWithValue {
 
         private string topicName;
-        private AnalogSubscriber callback;
+        private ADSubscriber callback;
         private Logger logger;
 
-        public AnalogSinkI(string topicName, AnalogSubscriber callback) {
+        public EventWithValue(string topicName, ADSubscriber callback) {
             this.topicName = topicName;
             this.callback = callback;
             logger = Logger.GetLogger("libcitisim");
         }
 
-        public override void notify(float value, string source, Metadata meta, Current current=null) {
+        public void notify(dynamic value, string source, Metadata meta, Current current=null) {
             try {
                 string strmeta = "{";
                 foreach (var i in meta)
@@ -141,7 +158,33 @@ namespace LibCitisim {
         }
     }
 
-    internal class ADPublisher {
+    public class AnalogSinkI : SmartObject.AnalogSinkDisp_ {
+
+        private EventWithValue instance;
+
+        public AnalogSinkI(string topicName, ADSubscriber callback) {
+            instance = new EventWithValue(topicName, callback);
+        }
+
+        public override void notify(float value, string source, Metadata meta, Current current=null) {
+            instance.notify(value, source, meta, current);
+        }
+    }
+
+    public class DigitalSinkI : SmartObject.DigitalSinkDisp_ {
+
+        private EventWithValue instance;
+
+        public DigitalSinkI(string topicName, ADSubscriber callback) {
+            instance = new EventWithValue(topicName, callback);
+        }
+
+        public override void notify(bool value, string source, Metadata meta, Current current=null) {
+            instance.notify(value, source, meta, current);
+        }
+    }
+
+    public class ADPublisher {
         private Logger logger = Logger.GetLogger("libcitisim");
 
         private Broker broker;
@@ -166,7 +209,7 @@ namespace LibCitisim {
                 throw new ArgumentException($"Unknown topic name: '{topicName}'");
         }
 
-        internal void Publish(dynamic value, string source=null, StringDict meta=null) {
+        public void Publish(dynamic value, string source=null, StringDict meta=null) {
             if (publisher is null)
                 RetrievePublisher();
             if (source is null)
@@ -208,6 +251,7 @@ namespace LibCitisim {
 
         private Ice.ObjectAdapter _adapter;
         private IceStorm.TopicManagerPrx _topicManager;
+        private PropertyServerPrx _propertyManager;
 
         private Ice.Communicator ic;
         private Ice.Properties props;
@@ -216,13 +260,17 @@ namespace LibCitisim {
 
         private static Dictionary<Type, Type> ServantTypes =
             new Dictionary<Type, Type> {
-                {typeof(SmartObject.AnalogSink), typeof(AnalogSinkI)}
+                {typeof(SmartObject.AnalogSink), typeof(AnalogSinkI)},
+                {typeof(SmartObject.DigitalSink), typeof(DigitalSinkI)}
             };
 
         internal static Dictionary<Type, ProxyCasting> ProxyTypes =
             new Dictionary<Type, ProxyCasting> {
                 {typeof(SmartObject.AnalogSink), (prx) => {
                     return SmartObject.AnalogSinkPrxHelper.uncheckedCast(prx);
+                }},
+                {typeof(SmartObject.DigitalSink), (prx) => {
+                    return SmartObject.DigitalSinkPrxHelper.uncheckedCast(prx);
                 }},
             };
 
@@ -240,12 +288,12 @@ namespace LibCitisim {
             logger = Logger.GetLogger("libcitisim");
 
             // enable logging, if specified to do so
-            if (GetProperty("LibCitisim.Debug", false) == "True") {
+            if (GetIceProperty("LibCitisim.Debug", false) == "True") {
                 logger.SetLevel("debug");
                 logger.Debug("debug mode active");
             }
 
-            // FIXME: self._set_default_properties()
+            SetDefaultProperties();
         }
 
         ~Broker() {
@@ -254,11 +302,20 @@ namespace LibCitisim {
             ic.destroy();
         }
 
-        private string GetProperty(string key, bool required=true) {
+        private string GetIceProperty(string key, bool required=true) {
             string value = props.getProperty(key);
             if (required && string.IsNullOrEmpty(value))
                 throw new ArgumentException($"missing configuration property: {key}");
             return value;
+        }
+
+        private void SetDefaultProperties() {
+            foreach(var i in Constants.defaultConfig) {
+                if (String.IsNullOrEmpty(props.getProperty(i.Key))) {
+                    logger.Info($"Setting default value for property '{i.Key}' = '{i.Value}'");
+                    props.setProperty(i.Key, i.Value);
+                }
+            }
         }
 
         public ObjectAdapter adapter {
@@ -271,7 +328,7 @@ namespace LibCitisim {
                     logger.Info("using bi-dir connections");
                 else {
                     adapterName = "Adapter";
-                    string endpoints = GetProperty("Adapter.Endpoints");
+                    string endpoints = GetIceProperty("Adapter.Endpoints");
                     logger.Info($"creating adapter with endpoints: '{endpoints}'");
                 }
 
@@ -281,19 +338,15 @@ namespace LibCitisim {
             }
         }
 
-        public TopicManagerPrx topicManager {
-            get {
-                if (_topicManager != null)
-                    return _topicManager;
+        // FIXME: adapter_add() goes here
 
-                var strprx = GetProperty(Constants.PROP_TOPIC_MANAGER_PROXY);
-                var proxy = ic.stringToProxy(strprx);
-                _topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(proxy);
-                return _topicManager;
-            }
-        }
+        // FIXME: welcome_server property goes here
 
-        public void Subscribe(string topicName, AnalogSubscriber callback) {
+        // FIXME: wiring_server property goes here
+
+        // FIXME: hello() goes here
+
+        public void Subscribe(string topicName, ADSubscriber callback) {
             Ice.ObjectPrx proxy = GetServantProxy(topicName, callback);
             IceStorm.TopicPrx topic = GetTopic(topicName);
 
@@ -308,7 +361,19 @@ namespace LibCitisim {
             p.Publish(value);
         }
 
-        private Ice.ObjectPrx GetServantProxy(string topicName, AnalogSubscriber callback) {
+        public ADPublisher GetPublisher(string topicName, string source="", StringDict meta=null) {
+            return new ADPublisher(this, topicName, source, meta);
+        }
+
+        public void WaitForEvents() {
+            try {
+                ic.waitForShutdown();
+            }
+            catch (OperationInterruptedException) {
+            }
+        }
+
+        private Ice.ObjectPrx GetServantProxy(string topicName, ADSubscriber callback) {
             Type type;
             if (!DataModel.TopicTypes.TryGetValue(topicName, out type)) {
                 throw new ArgumentException($"unknown topic name: '{topicName}'");
@@ -328,6 +393,39 @@ namespace LibCitisim {
             }
             catch (IceStorm.NoSuchTopic) {
                 return topicManager.create(topicName);
+            }
+        }
+
+        public TopicManagerPrx topicManager {
+            get {
+                if (_topicManager != null)
+                    return _topicManager;
+
+                var strprx = GetIceProperty(Constants.PROP_TOPIC_MANAGER_PROXY);
+                var proxy = ic.stringToProxy(strprx);
+                _topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(proxy);
+                return _topicManager;
+            }
+        }
+
+        public void SetProperty(string path, dynamic value) {
+            value = JsonConvert.SerializeObject(value);
+            propertyManager.set(path, value);
+        }
+
+        public string GetProperty(string path) {
+            return propertyManager.get(path);
+        }
+
+        internal PropertyServerPrx propertyManager {
+            get {
+                if (_propertyManager != null)
+                    return _propertyManager;
+
+                dynamic proxy = GetIceProperty(Constants.PROP_PROPERTY_SERVER_PROXY);
+                proxy = ic.stringToProxy(proxy);
+                _propertyManager = PropertyServerPrxHelper.checkedCast(proxy);
+                return _propertyManager;
             }
         }
     }

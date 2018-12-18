@@ -249,6 +249,11 @@ class Broker:
 
         self._set_default_properties()
 
+    def __del__(self):
+        if hasattr(self, '_adapter_created'):
+            self.adapter.deactivate()
+        self._ic.destroy()
+
     def _set_default_properties(self):
         for key, value in default_config.items():
             if not self.props.getProperty(key):
@@ -281,12 +286,14 @@ class Broker:
 
         return adapter
 
+    # FIXME: not tested
     def adapter_add(self, servant, identity)    :
         if not isinstance(identity, Ice.Identity):
             identity = self._ic.stringToIdentity(normalize_addr(identity))
 
         return self.adapter.add(servant, identity)
 
+    # FIXME: not tested
     @memoizedproperty
     def welcome_server(self):
         proxy = self._ic.propertyToProxy(WELCOME_SERVER_PROXY)
@@ -296,6 +303,7 @@ class Broker:
 
         return SmartObject.WelcomeServicePrx.uncheckedCast(proxy.ice_oneway())
 
+    # FIXME: not tested
     @memoizedproperty
     def wiring_server(self):
         proxy = self._ic.propertyToProxy(WIRING_SERVER_PROXY)
@@ -305,13 +313,9 @@ class Broker:
 
         return SmartObject.WiringServicePrx.checkedCast(proxy)
 
+    # FIXME: not tested
     def hello(self, address):
         self.welcome_server.hello(address)
-
-    def __del__(self):
-        if hasattr(self, '_adapter_created'):
-            self.adapter.deactivate()
-        self._ic.destroy()
 
     def subscribe(self, topic_name, callback):
         proxy = self._get_servant_proxy(topic_name, callback)
@@ -330,6 +334,7 @@ class Broker:
     def get_publisher(self, topic_name, source=None, meta={}):
         return ADPublisher(self, topic_name, source, meta)
 
+    # FIXME: not tested
     def wait_for_events(self):
         try:
             self._ic.waitForShutdown()

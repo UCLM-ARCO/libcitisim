@@ -18,7 +18,8 @@ namespace LibCitisim {
 
             public void check(string value) {
                 if (checker != null && !checker(value))
-                    throw new ArgumentException($"'{value}' should be of type '{type}'");
+                    throw new ArgumentException(
+                        $"invalid value '{value}' (for type '{type}')");
             }
         }
 
@@ -55,6 +56,46 @@ namespace LibCitisim {
             {"Unconfigured", typeof(SmartObject.AnalogSink)},
 
             {"Twilight", typeof(SmartObject.DigitalSink)},
+        };
+
+        public static List<string> Units = new List<string> {
+            "wats",
+            "celsius",
+            "kWh",
+            "%",
+            "ppm",
+        };
+
+        public static Dictionary<string, Cast> Properties = new Dictionary<string, Cast> {
+            {"units", new Cast(
+                typeof(string),
+                checker: (s) => Units.Exists(x => s.Equals(x)),
+                desc: "units of the readings")
+            }
+
+            // "hw-range":           Cast(float, 2, desc="[min, max] allowed sensor values"),
+            // "orientation":        Cast(float, 3, desc="[x, y, z]"),
+            // "manufacturer":       Cast(str),
+            // "deployment-date":    Cast(str,      desc="physical deployment date: 2001-01-01"),  # FXIME: add checker
+            // "last-revision-date": Cast(str,      desc="maintenance last revision date: 2001-01-01"),  # FIXME: add checker
+            // "sw-version":         Cast(str,      desc="running software version"),
+            // "hw-version":         Cast(str,      desc="device hw version"),
+
+            // # TO REMOVE
+            // "position":           Cast(float, 3, desc="[longitude, latitude, altitude] (only if fixed)"),  # to geogash service
+            // "place":              Cast(str,      desc="place textual identifier"),  # to geogash service
+
+            // # NEW
+            // "interface":          Cast(str,      desc="citisim SmartObject interface"),
+            // "asset":              Cast(str,      desc="icon or shape name (e: bulb)"),
+            // "magnitude":          Cast(str,      desc="physical magnitude", checker=check_enum(MAGNITUDES)),
+            // "model":              Cast(str,      desc="device model"),
+            // "delta":              Cast(int,      desc="number of seconds between updates"),
+            // "common-channel":     Cast(str,      desc="common public topic name where event will be sent"),
+            // "observable":         Cast(bool,     desc="True if a publisher implements SmartObject::Observable"),
+            // "derive-from":        Cast(str,      desc="Physical sensor identity for a virtual sensor"),
+
+            // "wiring:observers":   Cast(list,     desc="List of observer for an observable (managed by the wiring service")
         };
 
         public static Dictionary<string, Cast> Metadata = new Dictionary<string, Cast> {

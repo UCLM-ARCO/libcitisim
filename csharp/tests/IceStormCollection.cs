@@ -98,5 +98,5 @@ namespace LibCitisim {
     }
 
     [CollectionDefinition("IceStorm Collection")]
-    public class DatabaseCollection : ICollectionFixture<IceStormFixture> { }
+    public class IceStormCollection : ICollectionFixture<IceStormFixture> { }
 }
