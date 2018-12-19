@@ -49,6 +49,27 @@ namespace LibCitisim {
         }
 
         [Fact]
+        public void OneTimePublish_UseDoubleIsOK() {
+            var value = 123.4;
+
+            servant.Setup(
+                m => m.notify(
+                    (float)value,
+                    It.Is<string>(s => s.Length > 5),
+                    Match.Create<Metadata>(CheckMeta(null)),
+                    It.IsAny<Ice.Current>()))
+                .Callback(() => ev.Set())
+                .Verifiable();
+
+            // create a one-time-usage publisher, set source as a random
+            // string, meta with timestamp updated
+            broker.Publish(topicName, value);
+
+            ev.WaitOne(2000);
+            servant.Verify();
+        }
+
+        [Fact]
         public void OneTimePublish_GivenSourceAndMeta() {
             // create a one-time-usage publisher, set source as given, and
             // meta with Timestamp and also what you set here

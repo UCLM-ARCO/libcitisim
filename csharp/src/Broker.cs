@@ -68,6 +68,11 @@ namespace LibCitisim {
                 Console.WriteLine($"[{name}/info]: {message}");
         }
 
+        public void Warn(string message) {
+            if (level >= 6)
+                Console.WriteLine($"[{name}/WARN]: {message}");
+        }
+
         public void Error(string message) {
             if (level >= 4)
                 Console.WriteLine($"[{name}/ERROR]: {message}");
@@ -217,6 +222,10 @@ namespace LibCitisim {
             if (meta is null)
                 meta = this.meta;
 
+            // double is not supported, cast to float
+            if (value.GetType() == typeof(double))
+                value = (float)value;
+
             // if there is "timestamp" but explicitly set to None, then
             // remove ts from meta, otherwise (there is no "timestamp" key
             // in meta), set it as now
@@ -276,6 +285,9 @@ namespace LibCitisim {
 
         public Broker(string config, Ice.Communicator ic=null) :
             this(new string[] {"", "--Ice.Config=" + config}, ic) {
+            if (string.IsNullOrEmpty(config)) {
+                Logger.GetLogger("libcitisim").Warn($"Config file is not provided!");
+            }
         }
 
         public Broker(string[] args, Ice.Communicator ic=null) {
