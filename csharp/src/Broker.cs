@@ -256,7 +256,7 @@ namespace LibCitisim {
 
     public delegate dynamic ProxyCasting(Ice.ObjectPrx value);
 
-    public class Broker : IDisposable {
+    public sealed class Broker : IDisposable {
 
         private Ice.ObjectAdapter _adapter;
         private IceStorm.TopicManagerPrx _topicManager;
@@ -283,16 +283,37 @@ namespace LibCitisim {
                 }},
             };
 
-        public Broker(string config, Ice.Communicator ic=null) :
-            this(new string[] {"", "--Ice.Config=" + config}, ic) {
+        private static Broker instance;
+
+        public static Broker Initialize(string config, Ice.Communicator ic=null) {
+            string[] args = new string[] {"", "--Ice.Config=" + config};
             if (string.IsNullOrEmpty(config)) {
                 Logger.GetLogger("libcitisim").Warn($"Config file is not provided!");
             }
+            return Initialize(args, ic);
         }
 
-        public Broker(string[] args, Ice.Communicator ic=null) {
+        public static Broker Initialize(string[] args, Ice.Communicator ic=null) {
+            if (instance != null)
+                throw new InvalidOperationException("Broker already initialized!");
+            instance = new Broker(args, ic);
+            return instance;
+        }
+
+        // use this if you want another instance of the broker
+        public static void ForgetInstance() {
+            instance = null;
+        }
+
+        public static Broker GetBroker() {
+            if (instance is null)
+                throw new InvalidOperationException("Broker not initialized!");
+            return instance;
+        }
+
+        private Broker(string[] args, Ice.Communicator ic=null) {
             this.ic = ic;
-            if (this.ic == null)
+            if (this.ic is null)
                 this.ic = Ice.Util.initialize(ref args);
 
             props = this.ic.getProperties();

@@ -26,7 +26,11 @@ namespace LibCitisim {
             ic = Ice.Util.initialize(ref args_);
 
             // the real subject under testing
-            broker = new Broker(config);
+            try {
+               broker = Broker.Initialize(config);
+            }catch(InvalidOperationException) {
+                broker = Broker.GetBroker();
+            }
         }
 
         public void Dispose() {
