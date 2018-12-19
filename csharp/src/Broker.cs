@@ -256,7 +256,7 @@ namespace LibCitisim {
 
     public delegate dynamic ProxyCasting(Ice.ObjectPrx value);
 
-    public class Broker {
+    public class Broker : IDisposable {
 
         private Ice.ObjectAdapter _adapter;
         private IceStorm.TopicManagerPrx _topicManager;
@@ -309,9 +309,14 @@ namespace LibCitisim {
         }
 
         ~Broker() {
+            Dispose();
+        }
+
+        public void Dispose() {
             if (_adapter != null)
                 _adapter.deactivate();
             ic.destroy();
+            logger.Debug("broker correctly disposed");
         }
 
         private string GetIceProperty(string key, bool required=true) {
