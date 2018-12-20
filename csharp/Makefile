@@ -26,12 +26,12 @@ test:
 	dotnet test
 
 package:
-	dotnet publish -o $$(pwd)/publish src
-	zip -r libcitisim-cs-$(VER).zip publish/*.dll -x publish/Microsoft.CSharp.dll
+	dotnet publish -o $$(pwd)/LibCitisim src
+	zip -r libcitisim-cs-$(VER).zip LibCitisim/*.dll -x LibCitisim/Microsoft.CSharp.dll
 
 .PHONY: clean vclean
 clean:
-	$(RM) -r *.zip publish
+	$(RM) -r *.zip LibCitisim
 
 vclean: clean
 	$(RM) -r $(OUT_DIR)
