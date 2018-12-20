@@ -1,5 +1,6 @@
 # -*- mode: makefile-gmake; coding: utf-8 -*-
 
+VER       ?= $(shell date +%Y.%m%d)
 SLICE2CS  ?= slice2cs
 SLICE_DIR  = /usr/share/slice
 OUT_DIR    = src/generated
@@ -26,7 +27,11 @@ test:
 
 package:
 	dotnet publish -o $$(pwd)/publish src
+	zip -r libcitisim-cs-$(VER).zip publish/*.dll -x publish/Microsoft.CSharp.dll
 
-.PHONY: clean
+.PHONY: clean vclean
 clean:
-	$(RM) -fr $(OUT_DIR)
+	$(RM) -r *.zip publish
+
+vclean: clean
+	$(RM) -r $(OUT_DIR)
