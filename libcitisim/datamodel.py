@@ -11,11 +11,13 @@ if not os.path.exists(SLICE_DIR):
     if sys.platform == "win32":
         SLICE_DIR = os.path.join(Ice.getSliceDir(), "citisim")
     else:
-        SLICE_DIR = "/usr/share/slice/citisim/"
+        SLICE_DIR = "/usr/share/slice/citisim"
 
 Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
+Ice.loadSlice('{}/citizen.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 
 import SmartObject
+from Citisim import Citizen
 
 
 class Cast:
@@ -68,6 +70,8 @@ topic_types = {
     "Unconfigured": SmartObject.AnalogSink,
 
     "Twilight": SmartObject.DigitalSink,
+
+    "CitizenReport": Citizen.ReportSink,
 }
 
 
@@ -91,7 +95,7 @@ MAGNITUDES = [
 properties = {
     'units':              Cast(str, checker=check_enum(UNITS),
                                desc='units of the readings'),
-                              
+
     'hw-range':           Cast(float, 2, desc='[min, max] allowed sensor values'),
     'orientation':        Cast(float, 3, desc='[x, y, z]'),
     'manufacturer':       Cast(str),

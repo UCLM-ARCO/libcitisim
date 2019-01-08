@@ -21,9 +21,10 @@ import IceStorm
 from libcitisim import MetadataHelper, SmartObject
 import libcitisim
 
-ps_slice_path = "/usr/share/slice/PropertyService/PropertyService.ice"
-Ice.loadSlice(ps_slice_path)
+Ice.loadSlice("/usr/share/slice/PropertyService/PropertyService.ice")
+Ice.loadSlice("{0}/citisim/citizen.ice --all -I{0}".format("/usr/share/slice"))
 import PropertyService as PS
+from Citisim import Citizen
 
 
 class EventsMixin:
@@ -134,6 +135,18 @@ class DigitalEventsMixin(EventsMixin):
         if meta:
             meta = MetadataHelper(**meta).to_dict()
         publisher = SmartObject.DigitalSinkPrx.uncheckedCast(publisher)
+        publisher.notify(value, "Test", meta)
+
+
+class ReportEventsMixin(EventsMixin):
+    known_topics = ["CitizenReport"]
+
+    def _publish_event(self, topic_name, source=None, meta={}, value=None):
+        topic = self._get_topic(topic_name)
+        publisher = topic.getPublisher()
+        if meta:
+            meta = MetadataHelper(**meta).to_dict()
+        publisher = Citizen.ReportSinkPrx.uncheckedCast(publisher)
         publisher.notify(value, "Test", meta)
 
 
