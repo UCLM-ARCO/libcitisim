@@ -46,7 +46,7 @@ def int_range(min_, max_):
         retval = int(value)
 
         if not min_ <= retval <= max_:
-            raise TypeError("range [{}, {}]".float(min_, max_))
+            raise TypeError("range [{}, {}]".format(min_, max_))
 
         return retval
 

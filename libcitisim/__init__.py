@@ -75,9 +75,7 @@ class MetadataHelper:
             if value is None:
                 continue
 
-            cast.check(value)
-
-            setattr(self, key, cast.type(value))
+            setattr(self, key, cast.apply(value))
             del args[key]
 
         if args:
@@ -89,7 +87,7 @@ class MetadataHelper:
         for key, value in meta.items():
             key = key.name.lower()
             cast = datamodel.metadata.get(key)
-            fields[key] = cast.type(value)
+            fields[key] = cast.apply(value)
         return MetadataHelper(**fields)
 
     def get(self, key):
