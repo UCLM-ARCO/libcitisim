@@ -1,3 +1,9 @@
+libcitisim (0.20190108-1) unstable; urgency=low
+
+  * New release, added support for CitizenReport
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 08 Jan 2019 18:09:03 +0100
+
 libcitisim (0.20181127.1-1) unstable; urgency=low
 
   * New release, WelcomeService: hi -> hello
