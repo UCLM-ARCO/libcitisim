@@ -17,7 +17,7 @@ source:
 	python3 setup.py sdist
 
 tests:
-	nosetests3 test/*.py
+	nosetests3 test/test_*.py
 
 vagrant-ice36-tests:
 	@if vagrant status ice36 | grep "^ice36" | grep -v running; then \

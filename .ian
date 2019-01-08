@@ -3,3 +3,10 @@
 function ian-clean-hook() {
 	make clean
 }
+
+function ian-release-hook() {
+	local version=$(upstream-version)
+	echo "ian hook setting version to $version"
+	sc-assert-files-exist version.py
+	echo "__version__ = '$version'" > version.py
+}

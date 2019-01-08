@@ -24,6 +24,7 @@ Ice.loadSlice('{}/citisim/services.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citisim/PersonTracker.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('-I{0} {0}/citisim/wiring.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/PropertyService/PropertyService.ice --all'.format(SLICE_DIR))
+Ice.loadSlice('{0}/citisim/citizen.ice -I{0} --all'.format(SLICE_DIR))
 
 import PropertyService as PS
 import json
@@ -34,6 +35,7 @@ from SmartObject import MetadataField  # noqa
 # NOTE: expose this modules to users
 import SmartEnvironment  # noqa
 import KinectData  # noqa
+from Citisim import Citizen  # noqa
 
 logger = logging.getLogger('libcitisim')
 logger.setLevel(logging.ERROR)
@@ -169,7 +171,16 @@ class DigitalSinkI(SmartObject.DigitalSink, EventWithValueMixin):
         return self._notify(value, source, meta, current)
 
 
-class ADPublisher:
+class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
+    def __init__(self, topic_name, callback):
+        self._topic_name = topic_name
+        self._callback = callback
+
+    def notify(self, value, source, meta, current):
+        return self._notify(value, source, meta, current)
+
+
+class NotifyPublisher:
     def __init__(self, broker, topic_name, source=None, meta={}):
         if source is None:
             source = uuid.uuid4().hex[:8]
@@ -222,11 +233,13 @@ class Broker:
     servant_types = {
         SmartObject.AnalogSink: AnalogSinkI,
         SmartObject.DigitalSink: DigitalSinkI,
+        Citizen.ReportSink: ReportSinkI,
     }
 
     proxy_types = {
         SmartObject.AnalogSink: SmartObject.AnalogSinkPrx,
         SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
+        Citizen.ReportSink: Citizen.ReportSinkPrx,
     }
 
     def __init__(self, arg, ic=None):
@@ -328,11 +341,11 @@ class Broker:
         topic.subscribeAndGetPublisher({}, proxy)
 
     def publish(self, topic_name, value, source=None, meta={}):
-        p = ADPublisher(self, topic_name, source, meta)
+        p = NotifyPublisher(self, topic_name, source, meta)
         p.publish(value)
 
     def get_publisher(self, topic_name, source=None, meta={}):
-        return ADPublisher(self, topic_name, source, meta)
+        return NotifyPublisher(self, topic_name, source, meta)
 
     # FIXME: not tested
     def wait_for_events(self):

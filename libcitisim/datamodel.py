@@ -11,11 +11,13 @@ if not os.path.exists(SLICE_DIR):
     if sys.platform == "win32":
         SLICE_DIR = os.path.join(Ice.getSliceDir(), "citisim")
     else:
-        SLICE_DIR = "/usr/share/slice/citisim/"
+        SLICE_DIR = "/usr/share/slice/citisim"
 
 Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
+Ice.loadSlice('{}/citizen.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 
 import SmartObject
+from Citisim import Citizen
 
 
 def bool_cast(value):
@@ -87,10 +89,12 @@ topic_types = {
     "ActivePower": SmartObject.AnalogSink,
     "AirPollutants1": SmartObject.AnalogSink,
     "AirPollutants2": SmartObject.AnalogSink,
+    "ApparentPower": SmartObject.AnalogSink,
     "Anemometer": SmartObject.AnalogSink,
     "Battery": SmartObject.AnalogSink,
     "CarbonDioxide": SmartObject.AnalogSink,
     "CarbonMonoxide": SmartObject.AnalogSink,
+    "Current": SmartObject.AnalogSink,
     "Dioxygen": SmartObject.AnalogSink,
     "Energy": SmartObject.AnalogSink,
     "HydrocarbonsVOC": SmartObject.AnalogSink,
@@ -104,6 +108,7 @@ topic_types = {
     "PluviometerLastDay": SmartObject.AnalogSink,
     "PluviometerLastHour": SmartObject.AnalogSink,
     "Power": SmartObject.AnalogSink,
+    "PowerFactor": SmartObject.AnalogSink,
     "Pressure": SmartObject.AnalogSink,
     "SoilMoisture": SmartObject.AnalogSink,
     "SoilTemperature": SmartObject.AnalogSink,
@@ -111,11 +116,14 @@ topic_types = {
     "StemDiameter": SmartObject.AnalogSink,
     "Temperature": SmartObject.AnalogSink,
     "Vibration": SmartObject.AnalogSink,
+    "Voltage": SmartObject.AnalogSink,
     "WindVane": SmartObject.AnalogSink,
 
     "Unconfigured": SmartObject.AnalogSink,
 
     "Twilight": SmartObject.DigitalSink,
+
+    "CitizenReport": Citizen.ReportSink,
 }
 
 
