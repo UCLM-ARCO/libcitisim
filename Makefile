@@ -40,4 +40,4 @@ install:
 
 .PHONY: clean
 clean:
-	$(RM) -r slice dist libcitisim.egg-info build
+	$(RM) -r slice dist libcitisim.egg-info build *.retry

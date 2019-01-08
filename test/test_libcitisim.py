@@ -849,10 +849,3 @@ class DefaultPropertyTests(TestCase):
             pass
 
 
-class PropertyCastTests(TestCase):
-    def test_right_unit(self):
-        libcitisim.datamodel.properties['units'].check('wats')
-
-    def test_wrong_unit(self):
-        with self.assertRaises(TypeError):
-            libcitisim.datamodel.properties['units'].check('wrong')

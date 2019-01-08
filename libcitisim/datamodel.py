@@ -18,18 +18,70 @@ Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 import SmartObject
 
 
-class Cast:
-    def __init__(self, type_, n=1, desc='', checker=None):
-        self.type = type_
-        self.checker = checker or (lambda x: True)
+def bool_cast(value):
+    false_values = [0, False, 'False', 'false']
+    true_values = [1, True, 'True', 'true']
 
-        if n > 1:
-            self.type = list
-            self.item_type = type_
+    if value in false_values:
+        return False
+    if value in true_values:
+        return True
 
-    def check(self, value):
-        if not self.checker(value):
-            raise TypeError("'{}' should be of type '{}'".format(value, self.type))
+    raise TypeError("a valid boolean value: {}".format(false_values + true_values))
+
+
+def valid_enum(values):
+    def caster(x):
+        if x in values:
+            return x
+        raise TypeError(values)
+
+    return caster
+
+
+def int_range(min_, max_):
+    def caster(value):
+        retval = int(value)
+
+        if not min_ <= retval <= max_:
+            raise TypeError("range [{}, {}]".float(min_, max_))
+
+        return retval
+
+    return caster
+
+
+type_casters = {
+    bool: bool_cast,
+}
+
+
+class TypeCast:
+    def __init__(self, caster=str, n=1, desc=''):
+        self.caster = type_casters.get(caster, caster)
+        self.len = n
+
+    def apply(self, value):
+        if self.len > 1:
+            return list(self.apply_list(value))
+
+        return self.apply_item(value)
+
+    def apply_item(self, value):
+        try:
+            return self.caster(value)
+        except TypeError as e:
+            raise TypeError("'{}' should match '{}'".format(value, e))
+
+    def apply_list(self, value):
+        if len(value) != self.len:
+            raise TypeError("value len is {}, but it should be {}".format(
+                len(value), self.len))
+
+        for i in range(self.len):
+            yield self.apply_item(value[i])
+
+
 
 topic_types = {
     "ActivePower": SmartObject.AnalogSink,
@@ -67,9 +119,6 @@ topic_types = {
 }
 
 
-def check_enum(values):
-    return lambda x: x in values
-
 UNITS = [
     'wats',
     'celsius',
@@ -85,40 +134,38 @@ MAGNITUDES = [
 ]
 
 properties = {
-    'units':              Cast(str, checker=check_enum(UNITS),
-                               desc='units of the readings'),
-                              
-    'hw-range':           Cast(float, 2, desc='[min, max] allowed sensor values'),
-    'orientation':        Cast(float, 3, desc='[x, y, z]'),
-    'manufacturer':       Cast(str),
-    'deployment-date':    Cast(str,      desc='physical deployment date: 2001-01-01'),  # FXIME: add checker
-    'last-revision-date': Cast(str,      desc='maintenance last revision date: 2001-01-01'),  # FIXME: add checker
-    'sw-version':         Cast(str,      desc='running software version'),
-    'hw-version':         Cast(str,      desc='device hw version'),
+    'units':              TypeCast(valid_enum(UNITS), desc='units of the readings'),
+    'hw-range':           TypeCast(float, 2, desc='[min, max] allowed sensor values'),
+    'orientation':        TypeCast(float, 3, desc='[x, y, z]'),
+    'manufacturer':       TypeCast(),
+    'deployment-date':    TypeCast(desc='physical deployment date: 2001-01-01'),  # FXIME: add checker
+    'last-revision-date': TypeCast(desc='maintenance last revision date: 2001-01-01'),  # FIXME: add checker
+    'sw-version':         TypeCast(desc='running software version'),
+    'hw-version':         TypeCast(desc='device hw version'),
 
     # TO REMOVE
-    'position':           Cast(float, 3, desc='[longitude, latitude, altitude] (only if fixed)'),  # to geogash service
-    'place':              Cast(str,      desc='place textual identifier'),  # to geogash service
+    # 'position':           TypeCast(float, 3, desc='[longitude, latitude, altitude] (only if fixed)'),  # to location service
+    # 'place':              TypeCast(desc='place textual identifier'),  # to location service
 
     # NEW
-    'interface':          Cast(str,      desc='citisim SmartObject interface'),
-    'asset':              Cast(str,      desc='icon or shape name (e: bulb)'),
-    'magnitude':          Cast(str,      desc='physical magnitude', checker=check_enum(MAGNITUDES)),
-    'model':              Cast(str,      desc='device model'),
-    'delta':              Cast(int,      desc='number of seconds between updates'),
-    'common-channel':     Cast(str,      desc='common public topic name where event will be sent'),
-    'observable':         Cast(bool,     desc='True if a publisher implements SmartObject::Observable'),
-    'derive-from':        Cast(str,      desc='Physical sensor identity for a virtual sensor'),
+    'interface':          TypeCast(desc='citisim SmartObject interface'),
+    'asset':              TypeCast(desc='icon or shape name (e: bulb)'),
+    'magnitude':          TypeCast(valid_enum(MAGNITUDES), desc='physical magnitude'),
+    'model':              TypeCast(desc='device model'),
+    'delta':              TypeCast(int,  desc='number of seconds between updates'),
+    'common-channel':     TypeCast(desc='common public topic name where event will be sent'),
+    'observable':         TypeCast(bool, desc='True if a publisher implements SmartObject::Observable'),
+    'derive-from':        TypeCast(desc='Physical sensor identity for a virtual sensor'),
 
-    'wiring:observers':   Cast(list,     desc='List of observer for an observable (managed by the wiring service')
+    # 'wiring:observers':   TypeCast(list, desc='List of observers for an observable (managed by the wiring service')
 }
 
 metadata = {
-    'timestamp':  Cast(int),
-    'quality':    Cast(int, checker=lambda x: 0 <= x <= 256),
-    'expiration': Cast(int,     desc='validity for the sent value (in seconds)', checker=lambda x: 0 <= x <= 2**15 - 1),
-    'latitude':   Cast(float),
-    'longitude':  Cast(float),
-    'altitude':   Cast(float),
-    'place':      Cast(str,     desc='Standard placeID'),
+    'timestamp':  TypeCast(int),
+    'quality':    TypeCast(int_range(0, 356)),
+    'expiration': TypeCast(int_range(0, 2**15 - 1), desc='validity for the sent value (in seconds)'),
+    'latitude':   TypeCast(float),
+    'longitude':  TypeCast(float),
+    'altitude':   TypeCast(float),
+    'place':      TypeCast(desc='Standard placeID'),
 }
