@@ -30,6 +30,7 @@ import PropertyService as PS
 import json
 
 import SmartObject  # noqa
+import SmartServices  # noqa
 from SmartObject import MetadataField  # noqa
 
 # NOTE: expose this modules to users
@@ -322,7 +323,7 @@ class Broker:
             raise RuntimeError(
                 "You must provide the '{}' configuration property.".format(WIRING_SERVER_PROXY))
 
-        return SmartObject.WiringServicePrx.checkedCast(proxy)
+        return SmartServices.WiringServicePrx.checkedCast(proxy)
 
     # FIXME: not tested
     def hello(self, address):
