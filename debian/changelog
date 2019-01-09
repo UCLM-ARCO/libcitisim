@@ -1,3 +1,9 @@
+libcitisim (0.20190109-1) unstable; urgency=low
+
+  * New release, fix casting for WiringService proxy
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 09 Jan 2019 11:08:21 +0100
+
 libcitisim (0.20190108-1) unstable; urgency=low
 
   * New release, added support for CitizenReport
