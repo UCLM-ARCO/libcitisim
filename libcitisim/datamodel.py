@@ -43,7 +43,10 @@ def valid_enum(values):
 
 def int_range(min_, max_):
     def caster(value):
-        retval = int(value)
+        try:
+            retval = int(value)
+        except ValueError:
+            raise TypeError("invalid value for int: {}".format(value))
 
         if not min_ <= retval <= max_:
             raise TypeError("range [{}, {}]".format(min_, max_))
@@ -170,7 +173,7 @@ properties = {
 
 metadata = {
     'timestamp':  TypeCast(int),
-    'quality':    TypeCast(int_range(0, 356)),
+    'quality':    TypeCast(int_range(0, 256)),
     'expiration': TypeCast(int_range(0, 2**15 - 1), desc='validity for the sent value (in seconds)'),
     'latitude':   TypeCast(float),
     'longitude':  TypeCast(float),
