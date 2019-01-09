@@ -6,7 +6,7 @@ from libcitisim import Broker
 
 NOTIFY_MSG = '''
 New notification:
-  * data: {:.2f}
+  * data: {}
   * source: {}'''
 
 
