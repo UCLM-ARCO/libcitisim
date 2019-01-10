@@ -5,4 +5,4 @@
 #  $ . set-env.sh
 #
 
-export PYTHONPATH=$(pwd)/../..
+export PYTHONPATH=$(git rev-parse --show-toplevel)
