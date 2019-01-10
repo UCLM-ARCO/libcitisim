@@ -88,7 +88,11 @@ class MetadataHelper:
         for key, value in meta.items():
             key = key.name.lower()
             cast = datamodel.metadata.get(key)
-            fields[key] = cast.apply(value)
+            if cast is None:
+                logging.warn("Invalid metadata key: '{}'".format(key))
+            else:
+                fields[key] = cast.apply(value)
+                
         return MetadataHelper(**fields)
 
     def get(self, key):
