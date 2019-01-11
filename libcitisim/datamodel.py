@@ -87,7 +87,6 @@ class TypeCast:
             yield self.apply_item(value[i])
 
 
-
 topic_types = {
     "ActivePower": SmartObject.AnalogSink,
     "AirPollutants1": SmartObject.AnalogSink,
