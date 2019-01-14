@@ -1,2 +1,3 @@
 include version.py
 recursive-include slice/citisim *.ice
+recursive-include slice/PropertyService *.ice
