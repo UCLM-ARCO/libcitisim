@@ -16,7 +16,7 @@ class TemperatureSubscriber:
         if len(args) > 1:
             config = args[1]
 
-        topic_name = "Temperature"
+        topic_name = "Voltage"
         broker = Broker(config)
 
         print("Subscribing to '" + topic_name + "' topic")

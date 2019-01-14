@@ -14,7 +14,7 @@ from .util import memoizedproperty
 
 PWD = os.path.dirname(__file__)
 # FIXME: SLICE_DIR = os.path.join(PWD, "../../../slice")
-if True:  #if not os.path.exists(SLICE_DIR):
+if True:  # if not os.path.exists(SLICE_DIR):
     if sys.platform == "win32":
         SLICE_DIR = Ice.getSliceDir()
     else:
@@ -57,6 +57,7 @@ default_config = {
     WIRING_SERVER_PROXY:   'WiringServer'
 }
 
+
 class MetadataHelper:
     name_to_field = {
         'timestamp':  MetadataField.Timestamp,
@@ -88,7 +89,11 @@ class MetadataHelper:
         for key, value in meta.items():
             key = key.name.lower()
             cast = datamodel.metadata.get(key)
-            fields[key] = cast.apply(value)
+            if cast is None:
+                logging.warn("Invalid metadata key: '{}'".format(key))
+            else:
+                fields[key] = cast.apply(value)
+
         return MetadataHelper(**fields)
 
     def get(self, key):
@@ -299,7 +304,7 @@ class Broker:
         return adapter
 
     # FIXME: not tested
-    def adapter_add(self, servant, identity)    :
+    def adapter_add(self, servant, identity):
         if not isinstance(identity, Ice.Identity):
             identity = self._ic.stringToIdentity(normalize_addr(identity))
 

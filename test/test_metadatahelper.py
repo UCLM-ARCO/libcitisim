@@ -55,6 +55,11 @@ class MetadataHelperTests(TestCase):
             expiration=10).to_dict()
         self.assertEquals(list(sut.values()), ['10', '100', '10'])
 
+    def test_wrong_keys(self):
+        meta = MetadataHelper().to_dict()
+        meta[100] = 1
+        MetadataHelper.from_metadata(meta)
+
 
 class MetadataHelperMarshallTests(TestCase):
     def setUp(self):
@@ -83,4 +88,3 @@ class MetadataHelperMarshallTests(TestCase):
 
         meta = MetadataHelper(timestamp=10).to_dict()
         sink.notify('', meta)
-
