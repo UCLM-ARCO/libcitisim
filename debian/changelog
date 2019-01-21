@@ -1,3 +1,9 @@
+libcitisim (0.20190111-1) unstable; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Fri, 11 Jan 2019 15:58:03 +0100
+
 libcitisim (0.20190109-1) unstable; urgency=low
 
   * New release, fix casting for WiringService proxy

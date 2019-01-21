@@ -87,12 +87,17 @@ class MetadataHelper:
     def from_metadata(self, meta):
         fields = {}
         for key, value in meta.items():
+            if not isinstance(key, MetadataField):
+                logging.warn("Invalid metadata key: '{}'. MetadataField type required.".format(key))
+                continue
+
             key = key.name.lower()
             cast = datamodel.metadata.get(key)
             if cast is None:
                 logging.warn("Invalid metadata key: '{}'".format(key))
-            else:
-                fields[key] = cast.apply(value)
+                continue
+
+            fields[key] = cast.apply(value)
 
         return MetadataHelper(**fields)
 
