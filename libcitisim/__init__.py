@@ -399,6 +399,7 @@ class Broker:
         manager = self._get_property_manager()
         return manager.get(path)
 
+    # User memoize
     def _get_property_manager(self):
         if not hasattr(self, "_property_manager"):
             manager = self._ic.propertyToProxy(PROPERTY_SERVER_PROXY)
