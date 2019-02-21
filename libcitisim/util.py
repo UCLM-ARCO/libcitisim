@@ -1,3 +1,4 @@
+# FIXME decorator property/functools.lru_cache provides the same
 class memoizedproperty:
     """Memoized properties
 
