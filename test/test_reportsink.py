@@ -81,7 +81,7 @@ class ReportSinkPublisherTests(ReportEventsMixin, TestCase):
 
         got_meta = self.servant.notify.calls[0].args[2]
         got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
-        assert_that(got_ts, close_to(time(), 10))
+        assert_that(got_ts, close_to(time(), 15))
 
         got_source = self.servant.notify.calls[0].args[1]
         assert_that(len(got_source), greater_than(5))

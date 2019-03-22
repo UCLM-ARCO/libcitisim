@@ -137,11 +137,37 @@ UNITS = [
     'ppm',
 ]
 
+
 MAGNITUDES = [
     'electrical-power',
     'temperature',
     'humidity',
 ]
+
+
+TRANSDUCER_TYPES = [
+    'LightSensor',
+    'TemperatureSensor',
+    'HumiditySensor',
+    'PressureSensor',
+    'VibrationSensor',
+    'VoltageSensor',
+    'WindSpeedSensor'
+    'PowerSensor',
+    'CurrentSensor',
+    'EnergySensor',
+    'RelayActuator',
+    'ParticulateMatterSensor',
+    'GasSensor',
+    'VolumeSensor',
+    'RadiationSensor',
+    'TwilightSensor',
+
+    'RelayActuator',
+    'MotorActuator',
+    'DimmableLightActuator',
+]
+
 
 properties = {
     'units':              TypeCast(valid_enum(UNITS), desc='units of the readings'),
@@ -169,6 +195,7 @@ properties = {
 
     # 'wiring:observers':   TypeCast(list, desc='List of observers for an observable (managed by the wiring service')
 }
+
 
 metadata = {
     'timestamp':  TypeCast(int),

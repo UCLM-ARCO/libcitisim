@@ -1,25 +1,13 @@
 # # -*- coding: utf-8; mode: python -*-
 
 import os
-# from time import time
-from subprocess import Popen, PIPE
-from select import select
-# from io import StringIO
-# import contextlib
 import shutil
-# import json
 import Ice
 import IceStorm
-# from doublex import (
-#     assert_that, called, method_returning, method_raising, Mimic, Spy
-# )
-# from hamcrest import (
-#     calling, raises, is_not, anything, close_to, greater_than, equal_to
-# )
-# from unittest import TestCase
-
-from libcitisim import MetadataHelper, SmartObject
 import libcitisim
+from subprocess import Popen, PIPE
+from select import select
+from libcitisim import MetadataHelper, SmartObject
 
 Ice.loadSlice("/usr/share/slice/PropertyService/PropertyService.ice")
 Ice.loadSlice("{0}/citisim/citizen.ice --all -I{0}".format("/usr/share/slice"))
@@ -30,6 +18,7 @@ from Citisim import Citizen
 class EventsMixin:
     @classmethod
     def setUpClass(cls):
+        print("- setting up class...")
         pwd = os.path.dirname(__file__)
         db_path = "/tmp/test-libcitisim-is-db"
         if os.path.exists(db_path):
@@ -40,10 +29,11 @@ class EventsMixin:
         cmd = "icebox --Ice.Config=" + cls.config
         cls.is_server = Popen(cmd.split(), cwd=pwd, stdout=PIPE)
 
-        # wait for IceStorm to be ready
+        print("- waiting for IS to launch...")
         pipe = select([cls.is_server.stdout], [], [], 3)[0]
         assert len(pipe), "IceStorm service did not launch correctly"
         assert pipe[0].readline() == b"IceStorm is ready\n"
+        print("- IceStorm server OK")
 
     @classmethod
     def tearDownClass(cls):
@@ -52,6 +42,7 @@ class EventsMixin:
             cls.is_server.kill()
 
     def setUp(self):
+        print("- setting up instance...")
         # for testing purposes only
         args = ["", "--Ice.Config=" + self.config]
         self.ic = Ice.initialize(args)
@@ -61,6 +52,7 @@ class EventsMixin:
 
         # the real subject under testing
         self.broker = libcitisim.Broker(self.config)
+        print("- instance setup OK")
 
     def tearDown(self):
         self.ic.destroy()
@@ -75,7 +67,7 @@ class EventsMixin:
 
     def _subscribe(self, topic_name, proxy):
         topic = self._get_topic(topic_name)
-        topic.subscribeAndGetPublisher({}, proxy)
+        print(topic.subscribeAndGetPublisher({}, proxy))
 
     def _adapter_add(self, servant):
         return self.adapter.addWithUUID(servant)
