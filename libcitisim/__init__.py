@@ -45,7 +45,7 @@ logger.addHandler(handler)
 handler.setFormatter(logging.Formatter('[%(name)s]:%(levelname)s %(message)s'))
 
 # Common Ice property names
-WELCOME_SERVER_PROXY = "Welcome.Proxy"
+WELCOME_SERVER_PROXY = "WelcomeServer.Proxy"
 TOPICMANAGER_PROXY = 'TopicManager.Proxy'
 PROPERTY_SERVER_PROXY = 'PropertyService.Proxy'  # FIXME: should be "PropertyServer.Proxy"
 WIRING_SERVER_PROXY = 'WiringServer.Proxy'
@@ -189,6 +189,7 @@ class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
         return self._notify(value, source, meta, current)
 
 
+# FIXME: deprecated, to remove!
 class NotifyPublisher:
     def __init__(self, broker, topic_name, source=None, meta={}):
         if source is None:
@@ -238,6 +239,57 @@ class NotifyPublisher:
         self._publisher = cast.uncheckedCast(publisher)
 
 
+class ObservablePublisher(SmartObject.Observable, ObservableMixin):
+    def __init__(self, broker, source, transducer_type, meta):
+        pass
+
+    #     if source is None:
+    #         source = uuid.uuid4().hex[:8]
+    #     if meta is None:
+    #         meta = {}
+
+    #     self._broker = broker
+    #     self._topic_name = topic_name
+    #     self._source = source
+    #     self._meta = meta
+    #     self._type = datamodel.topic_types.get(topic_name)
+    #     self._publisher = None
+
+    #     if self._type is None:
+    #         raise ValueError("Unknown topic name: {}".format(topic_name))
+
+    # def publish(self, value, source=None, meta=None):
+    #     if self._publisher is None:
+    #         self._retrieve_publisher()
+
+    #     if source is None:
+    #         source = self._source
+    #     if meta is None:
+    #         meta = self._meta
+
+    #     # if there is "timestamp" but explicitly set to None, then
+    #     # remove ts from meta, otherwise (there is no "timestamp" key
+    #     # in meta), set it as now
+    #     if "timestamp" not in meta:
+    #         meta["timestamp"] = int(time())
+    #     else:
+    #         if meta.get("timestamp") is None:
+    #             meta.pop("timestamp")
+
+    #     meta = MetadataHelper(**meta).to_dict()
+    #     self._publisher.notify(value, source, meta)
+    #     logger.debug(
+    #         "publish event on '{}', value: {}, source: {}, meta: {}"
+    #         .format(self._topic_name, value, source, meta)
+    #     )
+
+    # def _retrieve_publisher(self):
+    #     topic = self._broker.get_topic(self._topic_name)
+    #     publisher = topic.getPublisher()
+    #     cast = self._broker.proxy_types[self._type]
+    #     self._publisher = cast.uncheckedCast(publisher)
+
+
 class Broker:
     servant_types = {
         SmartObject.AnalogSink: AnalogSinkI,
@@ -262,7 +314,7 @@ class Broker:
                 raise Exception("Broker argument should be filename (str) or command line (str list)")
 
         self.props = self._ic.getProperties()
-        self._is_bidir = self.props.getProperty("LibCitisim.UseBiDir") == "True"
+        self.is_bidir = self.props.getProperty("LibCitisim.UseBiDir") == "True"
 
         # enable logging, if specified to do so
         if self.props.getProperty("LibCitisim.Debug") == "True":
@@ -289,7 +341,7 @@ class Broker:
 
     @memoizedproperty
     def adapter(self):
-        if self._is_bidir:
+        if self.is_bidir:
             adapter_name = ""
             logger.info("using bi-dir connections")
 
@@ -336,25 +388,25 @@ class Broker:
         return SmartServices.WiringServicePrx.checkedCast(proxy)
 
     # FIXME: not tested
-    def hello(self, address):
-        self.welcome_server.hello(address)
+    def hello(self, address, transducer_type):
+        self.welcome_server.hello(address, transducer_type)
 
     def subscribe(self, topic_name, callback):
         proxy = self._get_servant_proxy(topic_name, callback)
         topic = self.get_topic(topic_name)
 
         # support for bidir connections
-        if self._is_bidir:
+        if self.is_bidir:
             topic.ice_getConnection().setAdapter(self.adapter)
 
         topic.subscribeAndGetPublisher({}, proxy)
 
-    def publish(self, topic_name, value, source=None, meta={}):
-        p = NotifyPublisher(self, topic_name, source, meta)
-        p.publish(value)
-
-    def get_publisher(self, topic_name, source=None, meta={}):
-        return NotifyPublisher(self, topic_name, source, meta)
+    def get_publisher(self, source, transducer_type, meta={}):
+        pub = ObservablePublisher(self, source, transducer_type, meta)
+        pub_prx = self.adapter.addWithUUID(pub)
+        self.hello(str(pub_prx), transducer_type)
+        self.adapter.remove(pub_prx.ice_getIdentity())
+        return pub
 
     # FIXME: not tested
     def wait_for_events(self):

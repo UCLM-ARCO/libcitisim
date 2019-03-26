@@ -34,6 +34,7 @@ class CommonSubscriberTests(AnalogEventsMixin, TestCase):
 
 
 class CommonPublisherTests(AnalogEventsMixin, TestCase):
+    # FIXME: ensure that provided TransceiverType is known
     def test_publish_to_unknown_topic_is_not_possible(self):
         assert_that(
             calling(self.broker.publish).with_args("UnknownTopic", 1.263),

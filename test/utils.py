@@ -19,15 +19,21 @@ class EventsMixin:
     @classmethod
     def setUpClass(cls):
         print("- setting up class...")
-        pwd = os.path.dirname(__file__)
+        cls.pwd = os.path.dirname(__file__)
+        cls.config = os.path.join(cls.pwd, "tests.config")
+
+        cls.run_icestorm_server()
+        cls.run_welcome_server()
+
+    @classmethod
+    def run_icestorm_server(cls):
         db_path = "/tmp/test-libcitisim-is-db"
         if os.path.exists(db_path):
             shutil.rmtree(db_path)
         os.makedirs(db_path)
 
-        cls.config = os.path.join(pwd, "tests.config")
         cmd = "icebox --Ice.Config=" + cls.config
-        cls.is_server = Popen(cmd.split(), cwd=pwd, stdout=PIPE)
+        cls.is_server = Popen(cmd.split(), cwd=cls.pwd, stdout=PIPE)
 
         print("- waiting for IS to launch...")
         pipe = select([cls.is_server.stdout], [], [], 3)[0]
@@ -36,10 +42,25 @@ class EventsMixin:
         print("- IceStorm server OK")
 
     @classmethod
+    def run_welcome_server(cls):
+        cmd = "citisim-welcome --Ice.Config=" + cls.config
+        cls.welcome_server = Popen(cmd.split(), cwd=cls.pwd, stderr=PIPE)
+
+        print("- waiting for WelcomeServer to launch...")
+        pipe = select([cls.welcome_server.stderr], [], [], 3)[0]
+        assert len(pipe), "WelcomeService service did not launch correctly"
+        assert pipe[0].readline() == b"INFO:Welcome service started\n"
+        print("- Welcome server OK")
+
+    @classmethod
     def tearDownClass(cls):
         if hasattr(cls, "is_server"):
             cls.is_server.terminate()
             cls.is_server.kill()
+
+        if hasattr(cls, "welcome_server"):
+            cls.welcome_server.terminate()
+            cls.welcome_server.kill()
 
     def setUp(self):
         print("- setting up instance...")

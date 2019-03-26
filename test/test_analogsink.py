@@ -66,59 +66,61 @@ class AnalogSinkPublisherTests(AnalogEventsMixin, TestCase):
         self.proxy = self._adapter_add(self.servant)
         self._subscribe(self.topic_name, self.proxy)
 
-    def test_one_time_publish_event_is_ok(self):
-        # create a one-time-usage publisher, set source as a random
-        # string, meta with timestamp updated
-        self.broker.publish(self.topic_name, self.value)
+    # def test_one_time_publish_event_is_ok(self):
+    #     # create a one-time-usage publisher, set source as a random
+    #     # string, meta with timestamp updated
+    #     self.broker.publish(self.topic_name, self.value)
 
-        assert_that(self.servant.notify,
-                    called().
-                    with_args(self.value, anything(), anything(), anything()).
-                    async(timeout=2))
+    #     assert_that(self.servant.notify,
+    #                 called().
+    #                 with_args(self.value, anything(), anything(), anything()).
+    #                 async(timeout=2))
 
-        got_meta = self.servant.notify.calls[0].args[2]
-        got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
-        assert_that(got_ts, close_to(time(), 10))
+    #     got_meta = self.servant.notify.calls[0].args[2]
+    #     got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
+    #     assert_that(got_ts, close_to(time(), 10))
 
-        got_source = self.servant.notify.calls[0].args[1]
-        assert_that(len(got_source), greater_than(5))
+    #     got_source = self.servant.notify.calls[0].args[1]
+    #     assert_that(len(got_source), greater_than(5))
 
-    def test_one_time_publish_given_source_and_meta(self):
-        # create a one-time-usage publisher, set source as given, and
-        # meta with Timestamp and also what you set here
+    # def test_one_time_publish_given_source_and_meta(self):
+    #     # create a one-time-usage publisher, set source as given, and
+    #     # meta with Timestamp and also what you set here
 
-        self.broker.publish(
-            self.topic_name, self.value, self.source, self.meta)
+    #     self.broker.publish(
+    #         self.topic_name, self.value, self.source, self.meta)
 
-        assert_that(self.servant.notify,
-                    called().
-                    with_args(self.value, self.source, anything(), anything()).
-                    async(timeout=2))
+    #     assert_that(self.servant.notify,
+    #                 called().
+    #                 with_args(self.value, self.source, anything(), anything()).
+    #                 async(timeout=2))
 
-        got_meta = self.servant.notify.calls[0].args[2]
-        got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
-        assert_that(got_ts, close_to(time(), 1))
+    #     got_meta = self.servant.notify.calls[0].args[2]
+    #     got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
+    #     assert_that(got_ts, close_to(time(), 1))
 
-        got_quality = int(got_meta[SmartObject.MetadataField.Quality])
-        assert_that(got_quality, equal_to(self.meta["quality"]))
+    #     got_quality = int(got_meta[SmartObject.MetadataField.Quality])
+    #     assert_that(got_quality, equal_to(self.meta["quality"]))
 
-    def test_one_time_publish_with_incorrect_meta(self):
-        # it should raise an exception as it uses the MetadataHelper
-        assert_that(
-            calling(self.broker.publish).
-            with_args("Temperature", 123.5, meta={"someunknownkey": True}),
-            raises(KeyError))
+    # def test_one_time_publish_with_incorrect_meta(self):
+    #     # it should raise an exception as it uses the MetadataHelper
+    #     assert_that(
+    #         calling(self.broker.publish).
+    #         with_args("Temperature", 123.5, meta={"someunknownkey": True}),
+    #         raises(KeyError))
 
-        assert_that(
-            calling(self.broker.publish).
-            with_args("Temperature", 123.5, meta={"quality": "invalidvalue"}),
-            raises(TypeError))
+    #     assert_that(
+    #         calling(self.broker.publish).
+    #         with_args("Temperature", 123.5, meta={"quality": "invalidvalue"}),
+    #         raises(TypeError))
 
     def test_publisher_simple_event(self):
-        # create a reusable publisher for the given topic, source as a
-        # random string, meta with timestamp updated
-        topic_name = "Temperature"
-        p = self.broker.get_publisher(topic_name)
+        # create a reusable publisher for the given source
+        # - meta with timestamp auto-updated
+        source = "0011223344556677"
+        transceiver_type = "CurrentSensor"
+
+        p = self.broker.get_publisher(source, transceiver_type)
         p.publish(self.value)
 
         assert_that(self.servant.notify,
