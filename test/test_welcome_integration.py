@@ -1,5 +1,6 @@
 # -*- coding: utf-8; mode: python -*-
 
+from prego import TestCase
 from unittest import TestCase
 from doublex import assert_that, called, method_returning, Stub
 from hamcrest import anything

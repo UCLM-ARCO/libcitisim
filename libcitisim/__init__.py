@@ -13,12 +13,10 @@ from . import datamodel
 from .util import memoizedproperty
 
 PWD = os.path.dirname(__file__)
-# FIXME: SLICE_DIR = os.path.join(PWD, "../../../slice")
-if True:  # if not os.path.exists(SLICE_DIR):
-    if sys.platform == "win32":
-        SLICE_DIR = Ice.getSliceDir()
-    else:
-        SLICE_DIR = "/usr/share/slice"
+if sys.platform == "win32":
+    SLICE_DIR = Ice.getSliceDir()
+else:
+    SLICE_DIR = "/usr/share/slice"
 
 Ice.loadSlice('{}/citisim/services.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citisim/PersonTracker.ice --all'.format(SLICE_DIR))
@@ -346,11 +344,13 @@ class Broker:
             logger.info("using bi-dir connections")
 
         else:
-            adapter_name = "Adapter"
-            endpoints = self.props.getProperty("Adapter.Endpoints")
+            adapter_name = "LibCitisimAdapter"
+            endpoints_prop = adapter_name + ".Endpoints"
+            endpoints = self.props.getProperty(endpoints_prop)
             if not endpoints:
                 raise RuntimeError(
-                    "You must provide the 'Adapter.Endpoints' configuration property.")
+                    "You must provide the '{}' configuration property.".format(
+                        endpoints_prop))
 
             logger.info("creating adapter with endpoints: '{}'".format(endpoints))
 

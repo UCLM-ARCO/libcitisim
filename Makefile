@@ -26,6 +26,17 @@ source:
 tests:
 	nosetests3 test/test_*.py
 
+install-depends:
+	sudo apt install \
+		python3-nose \
+		python3-doublex \
+		python3-zeroc-ice \
+		citisim-slice \
+		zeroc-ice37 \
+ 		zeroc-ice37-services \
+		zeroc-icebox \
+		property-service-simple
+
 vagrant-ice36-tests:
 	@if vagrant status ice36 | grep "^ice36" | grep -v running; then \
 	    vagrant up ice36; \
