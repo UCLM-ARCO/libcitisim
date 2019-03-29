@@ -129,6 +129,33 @@ topic_types = {
 }
 
 
+transducer_types = {
+    'LightSensor': SmartObject.AnalogSinkPrx,
+    'TemperatureSensor': SmartObject.AnalogSinkPrx,
+    'HumiditySensor': SmartObject.AnalogSinkPrx,
+    'PressureSensor': SmartObject.AnalogSinkPrx,
+    'VibrationSensor': SmartObject.AnalogSinkPrx,
+    'VoltageSensor': SmartObject.AnalogSinkPrx,
+    'WindSpeedSensor': SmartObject.AnalogSinkPrx,
+    'PowerSensor': SmartObject.AnalogSinkPrx,
+    'CurrentSensor': SmartObject.AnalogSinkPrx,
+    'EnergySensor': SmartObject.AnalogSinkPrx,
+    'ParticulateMatterSensor': SmartObject.AnalogSinkPrx,
+    'GasSensor': SmartObject.AnalogSinkPrx,
+    'VolumeSensor': SmartObject.AnalogSinkPrx,
+    'RadiationSensor': SmartObject.AnalogSinkPrx,
+
+    'TwilightSensor': SmartObject.DigitalSinkPrx,
+    'DoorSensor': SmartObject.DigitalSinkPrx,
+
+    'RelayActuator': SmartObject.DigitalSinkPrx,
+    'MotorActuator': SmartObject.AnalogSinkPrx,
+    'DimmableLightActuator': SmartObject.AnalogSinkPrx,
+
+    'CitizenReporter': Citizen.ReportSinkPrx,
+}
+
+
 UNITS = [
     'wats',
     'celsius',
@@ -142,30 +169,6 @@ MAGNITUDES = [
     'electrical-power',
     'temperature',
     'humidity',
-]
-
-
-TRANSDUCER_TYPES = [
-    'LightSensor',
-    'TemperatureSensor',
-    'HumiditySensor',
-    'PressureSensor',
-    'VibrationSensor',
-    'VoltageSensor',
-    'WindSpeedSensor'
-    'PowerSensor',
-    'CurrentSensor',
-    'EnergySensor',
-    'RelayActuator',
-    'ParticulateMatterSensor',
-    'GasSensor',
-    'VolumeSensor',
-    'RadiationSensor',
-    'TwilightSensor',
-
-    'RelayActuator',
-    'MotorActuator',
-    'DimmableLightActuator',
 ]
 
 

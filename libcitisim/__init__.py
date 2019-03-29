@@ -2,12 +2,12 @@
 
 import os
 import sys
-import uuid
 import logging
-from time import time
 import Ice
 import IceStorm
+import json
 from ipaddress import ip_address
+from time import time
 
 from . import datamodel
 from .util import memoizedproperty
@@ -25,8 +25,6 @@ Ice.loadSlice('{}/PropertyService/PropertyService.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{0}/citisim/citizen.ice -I{0} --all'.format(SLICE_DIR))
 
 import PropertyService as PS
-import json
-
 import SmartObject  # noqa
 import SmartServices  # noqa
 from SmartObject import MetadataField  # noqa
@@ -45,7 +43,7 @@ handler.setFormatter(logging.Formatter('[%(name)s]:%(levelname)s %(message)s'))
 # Common Ice property names
 WELCOME_SERVER_PROXY = "WelcomeServer.Proxy"
 TOPICMANAGER_PROXY = 'TopicManager.Proxy'
-PROPERTY_SERVER_PROXY = 'PropertyService.Proxy'  # FIXME: should be "PropertyServer.Proxy"
+PROPERTY_SERVER_PROXY = 'PropertyServer.Proxy'
 WIRING_SERVER_PROXY = 'WiringServer.Proxy'
 
 default_config = {
@@ -86,7 +84,8 @@ class MetadataHelper:
         fields = {}
         for key, value in meta.items():
             if not isinstance(key, MetadataField):
-                logging.warn("Invalid metadata key: '{}'. MetadataField type required.".format(key))
+                logging.warn(
+                    "Invalid metadata key: '{}'. MetadataField type required.".format(key))
                 continue
 
             key = key.name.lower()
@@ -117,16 +116,6 @@ class MetadataHelper:
         return retval
 
 
-def remove_private_endpoints(proxy):
-    def is_private(endpoint):
-        if sys.version_info.major is 3:
-            return ip_address(endpoint.getInfo().host).is_private
-        return ip_address(str(endpoint.getInfo().host)).is_private
-
-    endpoints = [e for e in proxy.ice_getEndpoints() if not is_private(e)]
-    return proxy.ice_endpoints(endpoints)
-
-
 class ObservableMixin:
     observer_cast = None
 
@@ -135,7 +124,7 @@ class ObservableMixin:
             "observer_cast class attribute should be defined"
         self.observer = None
 
-    def setObserver(self, observer, current=None):
+    def setObserver(self, observer, current):
         ic = current.adapter.getCommunicator()
         proxy = ic.stringToProxy(observer)
         self.observer = self.observer_cast.uncheckedCast(proxy)
@@ -187,105 +176,57 @@ class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
         return self._notify(value, source, meta, current)
 
 
-# FIXME: deprecated, to remove!
-class NotifyPublisher:
-    def __init__(self, broker, topic_name, source=None, meta={}):
-        if source is None:
-            source = uuid.uuid4().hex[:8]
+
+class ObservablePublisher(SmartObject.Observable, ObservableMixin):
+    def __init__(self, broker, source, transducer_type, meta):
+        try:
+            self.observer_cast = datamodel.transducer_types[transducer_type]
+        except KeyError:
+            raise TypeError("Unknown transducer type: {}".format(transducer_type))
+
+        ObservableMixin.__init__(self)
+
+        assert source is not None, "Invalid provided source"
+        source = source.strip()
+        assert source != "", "Invalid provided source"
+
         if meta is None:
             meta = {}
 
-        self._broker = broker
-        self._topic_name = topic_name
-        self._source = source
-        self._meta = meta
-        self._type = datamodel.topic_types.get(topic_name)
-        self._publisher = None
+        self.broker = broker
+        self.source = source
+        self.meta = meta
 
-        if self._type is None:
-            raise ValueError("Unknown topic name: {}".format(topic_name))
+    def setObserver(self, observer, current):
+        ObservableMixin.setObserver(self, observer, current)
 
-    def publish(self, value, source=None, meta=None):
-        if self._publisher is None:
-            self._retrieve_publisher()
+    def publish(self, value, meta=None):
+        if self.observer is None:
+            raise ValueError("Publisher not yet configured!")
 
-        if source is None:
-            source = self._source
         if meta is None:
-            meta = self._meta
+            meta = self.meta
 
         # if there is "timestamp" but explicitly set to None, then
         # remove ts from meta, otherwise (there is no "timestamp" key
         # in meta), set it as now
         if "timestamp" not in meta:
             meta["timestamp"] = int(time())
-        else:
-            if meta.get("timestamp") is None:
-                meta.pop("timestamp")
+        elif meta.get("timestamp") is None:
+            meta.pop("timestamp")
 
         meta = MetadataHelper(**meta).to_dict()
-        self._publisher.notify(value, source, meta)
+        self.observer.notify(value, self.source, meta)
         logger.debug(
-            "publish event on '{}', value: {}, source: {}, meta: {}"
-            .format(self._topic_name, value, source, meta)
+            "publish event to '{}', value: {}, source: {}, meta: {}"
+            .format(self.observer, value, self.source, meta)
         )
 
-    def _retrieve_publisher(self):
-        topic = self._broker.get_topic(self._topic_name)
-        publisher = topic.getPublisher()
-        cast = self._broker.proxy_types[self._type]
-        self._publisher = cast.uncheckedCast(publisher)
-
-
-class ObservablePublisher(SmartObject.Observable, ObservableMixin):
-    def __init__(self, broker, source, transducer_type, meta):
-        pass
-
-    #     if source is None:
-    #         source = uuid.uuid4().hex[:8]
-    #     if meta is None:
-    #         meta = {}
-
-    #     self._broker = broker
-    #     self._topic_name = topic_name
-    #     self._source = source
-    #     self._meta = meta
-    #     self._type = datamodel.topic_types.get(topic_name)
-    #     self._publisher = None
-
-    #     if self._type is None:
-    #         raise ValueError("Unknown topic name: {}".format(topic_name))
-
-    # def publish(self, value, source=None, meta=None):
-    #     if self._publisher is None:
-    #         self._retrieve_publisher()
-
-    #     if source is None:
-    #         source = self._source
-    #     if meta is None:
-    #         meta = self._meta
-
-    #     # if there is "timestamp" but explicitly set to None, then
-    #     # remove ts from meta, otherwise (there is no "timestamp" key
-    #     # in meta), set it as now
-    #     if "timestamp" not in meta:
-    #         meta["timestamp"] = int(time())
-    #     else:
-    #         if meta.get("timestamp") is None:
-    #             meta.pop("timestamp")
-
-    #     meta = MetadataHelper(**meta).to_dict()
-    #     self._publisher.notify(value, source, meta)
-    #     logger.debug(
-    #         "publish event on '{}', value: {}, source: {}, meta: {}"
-    #         .format(self._topic_name, value, source, meta)
-    #     )
-
-    # def _retrieve_publisher(self):
-    #     topic = self._broker.get_topic(self._topic_name)
-    #     publisher = topic.getPublisher()
-    #     cast = self._broker.proxy_types[self._type]
-    #     self._publisher = cast.uncheckedCast(publisher)
+    def subscribe(self, observer):
+        prop_key = self.source + " | private-channel"
+        channel_name = self.broker.get_property(prop_key)
+        topic = self.broker.get_topic(channel_name)
+        topic.subscribeAndGetPublisher({}, observer)
 
 
 class Broker:
@@ -293,12 +234,6 @@ class Broker:
         SmartObject.AnalogSink: AnalogSinkI,
         SmartObject.DigitalSink: DigitalSinkI,
         Citizen.ReportSink: ReportSinkI,
-    }
-
-    proxy_types = {
-        SmartObject.AnalogSink: SmartObject.AnalogSinkPrx,
-        SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
-        Citizen.ReportSink: Citizen.ReportSinkPrx,
     }
 
     def __init__(self, arg, ic=None):
@@ -309,7 +244,8 @@ class Broker:
             elif isinstance(arg, list):
                 self._ic = Ice.initialize(arg)
             else:
-                raise Exception("Broker argument should be filename (str) or command line (str list)")
+                raise Exception(
+                    "Broker argument should be filename (str) or command line (str list)")
 
         self.props = self._ic.getProperties()
         self.is_bidir = self.props.getProperty("LibCitisim.UseBiDir") == "True"
@@ -331,11 +267,6 @@ class Broker:
             if not self.props.getProperty(key):
                 logging.info("Setting default value for property '{}' = '{}'".format(key, value))
                 self.props.setProperty(key, value)
-
-    # FIXME: deprecated
-    def create_adapter(self):
-        logging.warning("Method create_adapter() is deprecated. User .adapter. property instead.")
-        return self.adapter
 
     @memoizedproperty
     def adapter(self):
@@ -360,34 +291,31 @@ class Broker:
 
         return adapter
 
-    # FIXME: not tested
     def adapter_add(self, servant, identity):
         if not isinstance(identity, Ice.Identity):
             identity = self._ic.stringToIdentity(normalize_addr(identity))
-
         return self.adapter.add(servant, identity)
 
-    # FIXME: not tested
     @memoizedproperty
     def welcome_server(self):
         proxy = self._ic.propertyToProxy(WELCOME_SERVER_PROXY)
         if proxy is None:
             raise RuntimeError(
-                "You must provide the '{}' configuration property.".format(WELCOME_SERVER_PROXY))
+                "You must provide the '{}' configuration property.".format(
+                    WELCOME_SERVER_PROXY))
 
-        return SmartObject.WelcomeServicePrx.uncheckedCast(proxy.ice_oneway())
+        return SmartObject.WelcomeServicePrx.uncheckedCast(proxy)
 
-    # FIXME: not tested
     @memoizedproperty
     def wiring_server(self):
         proxy = self._ic.propertyToProxy(WIRING_SERVER_PROXY)
         if proxy is None:
             raise RuntimeError(
-                "You must provide the '{}' configuration property.".format(WIRING_SERVER_PROXY))
+                "You must provide the '{}' configuration property.".format(
+                    WIRING_SERVER_PROXY))
 
         return SmartServices.WiringServicePrx.checkedCast(proxy)
 
-    # FIXME: not tested
     def hello(self, address, transducer_type):
         self.welcome_server.hello(address, transducer_type)
 
@@ -403,12 +331,11 @@ class Broker:
 
     def get_publisher(self, source, transducer_type, meta={}):
         pub = ObservablePublisher(self, source, transducer_type, meta)
-        pub_prx = self.adapter.addWithUUID(pub)
+        pub_prx = self.adapter.add(pub, Ice.stringToIdentity(source))
         self.hello(str(pub_prx), transducer_type)
         self.adapter.remove(pub_prx.ice_getIdentity())
         return pub
 
-    # FIXME: not tested
     def wait_for_events(self):
         try:
             self._ic.waitForShutdown()
@@ -427,11 +354,10 @@ class Broker:
         return proxy
 
     def get_topic(self, name):
-        manager = self.topic_manager
         try:
-            return manager.retrieve(name)
+            return self.topic_manager.retrieve(name)
         except IceStorm.NoSuchTopic:
-            return manager.create(name)
+            return self.topic_manager.create(name)
 
     @memoizedproperty
     def topic_manager(self):
@@ -443,25 +369,30 @@ class Broker:
         return IceStorm.TopicManagerPrx.checkedCast(proxy)
 
     def set_property(self, path, value):
-        serialized_value = json.dumps(value)
-        manager = self._get_property_manager()
-        manager.set(path, serialized_value)
+        self.property_manager.set(path, json.dumps(value))
 
     def get_property(self, path):
-        manager = self._get_property_manager()
-        return manager.get(path)
+        return json.loads(self.property_manager.get(path))
 
-    # User memoize
-    def _get_property_manager(self):
-        if not hasattr(self, "_property_manager"):
-            manager = self._ic.propertyToProxy(PROPERTY_SERVER_PROXY)
-            if manager is None:
-                raise ValueError(
-                    "Missing configuration property: {}".format(PROPERTY_SERVER_PROXY))
+    @memoizedproperty
+    def property_manager(self):
+        manager = self._ic.propertyToProxy(PROPERTY_SERVER_PROXY)
+        if manager is None:
+            raise ValueError(
+                "Missing configuration property: {}".format(PROPERTY_SERVER_PROXY))
 
-            self._property_manager = PS.PropertyServerPrx.checkedCast(manager)
-        return self._property_manager
+        return PS.PropertyServerPrx.checkedCast(manager)
 
 
 def normalize_addr(address):
     return address.replace(':', '')
+
+
+def remove_private_endpoints(proxy):
+    def is_private(endpoint):
+        if sys.version_info.major is 3:
+            return ip_address(endpoint.getInfo().host).is_private
+        return ip_address(str(endpoint.getInfo().host)).is_private
+
+    endpoints = [e for e in proxy.ice_getEndpoints() if not is_private(e)]
+    return proxy.ice_endpoints(endpoints)

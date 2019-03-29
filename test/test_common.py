@@ -16,12 +16,6 @@ class CommonSubscriberTests(AnalogEventsMixin, TestCase):
                 "UnknownTopic", process_event),
             raises(ValueError))
 
-        # FIXME: this is a publish test, should not go here!
-        assert_that(
-            calling(self.broker.publish).
-            with_args("Temperature", 123.5, meta={"quality": "invalidvalue"}),
-            raises(TypeError))
-
     def test_subscriber_received_metadata_with_stringfied_keys(self):
         process_event = method_returning(None)
         self.broker.subscribe("WindVane", process_event)
@@ -34,9 +28,12 @@ class CommonSubscriberTests(AnalogEventsMixin, TestCase):
 
 
 class CommonPublisherTests(AnalogEventsMixin, TestCase):
-    # FIXME: ensure that provided TransceiverType is known
-    def test_publish_to_unknown_topic_is_not_possible(self):
+    def test_publish_with_unknown_transducer_type(self):
+        # this should raise an exception
+        source = "0011223344556677"
+
         assert_that(
-            calling(self.broker.publish).with_args("UnknownTopic", 1.263),
-            raises(ValueError))
+            calling(self.broker.get_publisher).
+            with_args(source, "InvalidType"),
+            raises(TypeError))
 

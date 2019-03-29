@@ -23,6 +23,7 @@ class EventsMixin:
         cls.config = os.path.join(cls.pwd, "tests.config")
 
         cls.run_icestorm_server()
+        cls.run_property_server()
         cls.run_welcome_server()
 
     @classmethod
@@ -32,7 +33,8 @@ class EventsMixin:
             shutil.rmtree(db_path)
         os.makedirs(db_path)
 
-        cmd = "icebox --Ice.Config=" + cls.config
+        config = os.path.join(cls.pwd, "is.config")
+        cmd = "icebox --Ice.Config=" + config
         cls.is_server = Popen(cmd.split(), cwd=cls.pwd, stdout=PIPE)
 
         print("- waiting for IS to launch...")
@@ -42,18 +44,36 @@ class EventsMixin:
         print("- IceStorm server OK")
 
     @classmethod
+    def run_property_server(cls):
+        config = os.path.join(cls.pwd, "ps.config")
+        cmd = "property-server --Ice.Config=" + config
+
+        if os.path.exists("/tmp/ps.json"):
+            os.unlink("/tmp/ps.json")
+
+        cls.ps_server = Popen(cmd.split(), cwd=cls.pwd, stdout=PIPE)
+        print("- waiting for PropertyServer to launch...")
+        while True:
+            pipe = select([cls.ps_server.stdout], [], [], 3)[0]
+            out = pipe[0].readline()
+            assert len(pipe), "PropertyService did not launch correctly"
+            if out.startswith(b"PropertyServer -t -e 1.1:tcp"):
+                break
+        print("- Property server OK")
+
+    @classmethod
     def run_welcome_server(cls):
         config = os.path.join(cls.pwd, "welcome.config")
         cmd = "citisim-welcome --Ice.Config=" + config
-       
-        cls.welcome_server = Popen(cmd.split(), cwd=cls.pwd, stderr=PIPE)
 
-        # print("- waiting for WelcomeServer to launch...")
-        # pipe = select([cls.welcome_server.stderr], [], [], 3)[0]
-        # assert len(pipe), "WelcomeService service did not launch correctly"
-        # out = pipe[0].readline()        
-        # assert out == b"INFO:Welcome service started\n", out
-        # print("- Welcome server OK") 
+        cls.welcome_server = Popen(
+            cmd.split(), cwd=cls.pwd, stdout=PIPE, stderr=PIPE)
+        print("- waiting for WelcomeServer to launch...")
+        pipe = select([cls.welcome_server.stderr], [], [], 3)[0]
+        assert len(pipe), "WelcomeService service did not launch correctly"
+        out = pipe[0].readline()
+        assert out == b"INFO:Welcome service started\n", out
+        print("- Welcome server OK")
 
     @classmethod
     def tearDownClass(cls):
@@ -64,6 +84,10 @@ class EventsMixin:
         if hasattr(cls, "welcome_server"):
             cls.welcome_server.terminate()
             cls.welcome_server.kill()
+
+        if hasattr(cls, "ps_server"):
+            cls.ps_server.terminate()
+            cls.ps_server.kill()
 
     def setUp(self):
         print("- setting up instance...")
@@ -166,29 +190,27 @@ class ReportEventsMixin(EventsMixin):
         publisher.notify(value, "Test", meta)
 
 
-class PropertyMixin:
+class PropertyMixin(EventsMixin):
     @classmethod
     def setUpClass(cls):
-        pwd = os.path.dirname(__file__)
+        print("- setting up class...")
+        cls.pwd = os.path.dirname(__file__)
+        cls.config = os.path.join(cls.pwd, "tests.config")
 
-        cls.config = os.path.join(pwd, "tests.config")
-        cmd = "property-server --Ice.Config=" + cls.config
-        cls.is_server = Popen(cmd.split(), cwd=pwd, stdout=PIPE)
-
-        pipe = select([cls.is_server.stdout], [], [], 3)[0]
-        assert len(pipe), "Property service did not launch correctly"
-        assert pipe[0].readline()[:31] == b'PropertyServer -t -e 1.1:tcp -h'
+        cls.run_property_server()
 
     @classmethod
     def tearDownClass(cls):
-        if hasattr(cls, "is_server"):
-            cls.is_server.terminate()
-            cls.is_server.kill()
+        if hasattr(cls, "ps_server"):
+            cls.ps_server.terminate()
+            cls.ps_server.kill()
 
     def setUp(self):
         # for testing purposes only
         args = ["", "--Ice.Config=" + self.config]
         self.ic = Ice.initialize(args)
+        self.props = PS.PropertyServerPrx.checkedCast(
+            self.ic.propertyToProxy("PropertyServer.Proxy"))
 
         # the real subject under testing
         self.broker = libcitisim.Broker(self.config)
@@ -196,15 +218,11 @@ class PropertyMixin:
     def tearDown(self):
         self.ic.destroy()
 
-    # FIXME: make manager a memoized property!
     def _get_property(self, path):
-        manager = self.ic.propertyToProxy("PropertyService.Proxy")
-        manager = PS.PropertyServerPrx.checkedCast(manager)
-        return manager.get(path)
+        return self.props.get(path)
 
-    # FIXME: make manager a memoized property!
     def _set_property(self, path, value):
-        manager = self.ic.propertyToProxy("PropertyService.Proxy")
-        manager = PS.PropertyServerPrx.checkedCast(manager)
-        return manager.set(path, value)
+        return self.props.set(path, value)
+
+
 

@@ -61,6 +61,14 @@ class MetadataHelperTests(TestCase):
         MetadataHelper.from_metadata(meta)
 
 
+class EventSinkI(SmartObject.EventSink):
+    def __init__(self, servant):
+        self.servant = servant
+
+    def notify(self, *args, **kwargs):
+        self.servant.notify(*args, **kwargs)
+
+
 class MetadataHelperMarshallTests(TestCase):
     def setUp(self):
         self.broker = Ice.initialize()
@@ -72,7 +80,7 @@ class MetadataHelperMarshallTests(TestCase):
         self.broker.destroy()
 
     def adapter_add(self, cast, servant):
-        proxy = self.adapter.addWithUUID(servant)
+        proxy = self.adapter.addWithUUID(EventSinkI(servant))
         return cast.uncheckedCast(proxy)
 
     def test_empty(self):
