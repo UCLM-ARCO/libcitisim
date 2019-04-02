@@ -104,6 +104,7 @@ class EventsMixin:
 
     def tearDown(self):
         self.ic.destroy()
+        self.broker.property_manager.clear()
 
     def _get_topic(self, name):
         manager = self.ic.propertyToProxy("TopicManager.Proxy")

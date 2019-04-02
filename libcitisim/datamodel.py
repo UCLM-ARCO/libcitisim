@@ -130,29 +130,29 @@ topic_types = {
 
 
 transducer_types = {
-    'LightSensor': SmartObject.AnalogSinkPrx,
-    'TemperatureSensor': SmartObject.AnalogSinkPrx,
-    'HumiditySensor': SmartObject.AnalogSinkPrx,
-    'PressureSensor': SmartObject.AnalogSinkPrx,
-    'VibrationSensor': SmartObject.AnalogSinkPrx,
-    'VoltageSensor': SmartObject.AnalogSinkPrx,
-    'WindSpeedSensor': SmartObject.AnalogSinkPrx,
-    'PowerSensor': SmartObject.AnalogSinkPrx,
-    'CurrentSensor': SmartObject.AnalogSinkPrx,
-    'EnergySensor': SmartObject.AnalogSinkPrx,
-    'ParticulateMatterSensor': SmartObject.AnalogSinkPrx,
-    'GasSensor': SmartObject.AnalogSinkPrx,
-    'VolumeSensor': SmartObject.AnalogSinkPrx,
-    'RadiationSensor': SmartObject.AnalogSinkPrx,
+    'LightSensor': SmartObject.AnalogSink,
+    'TemperatureSensor': SmartObject.AnalogSink,
+    'HumiditySensor': SmartObject.AnalogSink,
+    'PressureSensor': SmartObject.AnalogSink,
+    'VibrationSensor': SmartObject.AnalogSink,
+    'VoltageSensor': SmartObject.AnalogSink,
+    'WindSpeedSensor': SmartObject.AnalogSink,
+    'PowerSensor': SmartObject.AnalogSink,
+    'CurrentSensor': SmartObject.AnalogSink,
+    'EnergySensor': SmartObject.AnalogSink,
+    'ParticulateMatterSensor': SmartObject.AnalogSink,
+    'GasSensor': SmartObject.AnalogSink,
+    'VolumeSensor': SmartObject.AnalogSink,
+    'RadiationSensor': SmartObject.AnalogSink,
 
-    'TwilightSensor': SmartObject.DigitalSinkPrx,
-    'DoorSensor': SmartObject.DigitalSinkPrx,
+    'TwilightSensor': SmartObject.DigitalSink,
+    'DoorSensor': SmartObject.DigitalSink,
 
-    'RelayActuator': SmartObject.DigitalSinkPrx,
-    'MotorActuator': SmartObject.AnalogSinkPrx,
-    'DimmableLightActuator': SmartObject.AnalogSinkPrx,
+    'RelayActuator': SmartObject.DigitalSink,
+    'MotorActuator': SmartObject.AnalogSink,
+    'DimmableLightActuator': SmartObject.AnalogSink,
 
-    'CitizenReporter': Citizen.ReportSinkPrx,
+    'CitizenReporter': Citizen.ReportSink,
 }
 
 

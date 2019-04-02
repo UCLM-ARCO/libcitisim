@@ -8,6 +8,33 @@ from utils import AnalogEventsMixin
 
 
 class CommonSubscriberTests(AnalogEventsMixin, TestCase):
+    def test_subscribe_to_specific_publisher(self):
+        publisher = "0011223344556647"
+        process_event = method_returning(None)
+        self.broker.set_property(
+            publisher + " | private-channel", publisher + ".private")
+        self.broker.set_property(
+            publisher + " | transducer-type", "LightSensor")
+
+        self.broker.subscribe_to_publisher(publisher, process_event)
+
+        self._publish_event(
+            publisher + ".private", meta={"quality": 123})
+
+        assert_that(process_event, called().async(timeout=3))
+        meta = process_event.calls[0].args[2]
+        for key in meta.keys():
+            self.assertIsInstance(key, str)
+
+    def test_subscribe_to_unknown_publisher(self):
+        publisher = "0011223344556647"
+        process_event = method_returning(None)
+
+        assert_that(
+            calling(self.broker.subscribe_to_publisher).
+            with_args(publisher, process_event),
+            raises(ValueError))
+
     def test_subscribe_to_an_unknown_topic_is_not_possible(self):
         # this should raise a ValueError exception
         process_event = method_returning(None)

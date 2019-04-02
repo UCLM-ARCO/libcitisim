@@ -178,9 +178,17 @@ class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
 
 
 class ObservablePublisher(SmartObject.Observable, ObservableMixin):
+    proxy_types = {
+        SmartObject.AnalogSink: SmartObject.AnalogSinkPrx,
+        SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
+        Citizen.ReportSink: Citizen.ReportSinkPrx,
+    }
+
     def __init__(self, broker, source, transducer_type, meta):
         try:
-            self.observer_cast = datamodel.transducer_types[transducer_type]
+            self.observer_cast = self.proxy_types[
+                datamodel.transducer_types[transducer_type]
+            ]
         except KeyError:
             raise TypeError("Unknown transducer type: {}".format(transducer_type))
 
@@ -321,6 +329,27 @@ class Broker:
 
     def subscribe(self, topic_name, callback):
         proxy = self._get_servant_proxy(topic_name, callback)
+        return self._subscribe_proxy(topic_name, proxy)
+
+    def subscribe_to_publisher(self, source, callback):
+        try:
+            private_channel_key = source + " | private-channel"
+            topic_name = self.get_property(private_channel_key)
+
+            type_key = source + " | transducer-type"
+            transducer_type = self.get_property(type_key)
+
+            type_ = datamodel.transducer_types.get(transducer_type)
+            assert type_ is not None
+        except (PS.PropertyException, AssertionError):
+            raise ValueError("Unknown or invalid publisher: {}".format(source))
+
+        servant = self.servant_types[type_](topic_name, callback)
+        proxy = self.adapter.addWithUUID(servant)
+
+        return self._subscribe_proxy(topic_name, proxy)
+
+    def _subscribe_proxy(self, topic_name, proxy):
         topic = self.get_topic(topic_name)
 
         # support for bidir connections
