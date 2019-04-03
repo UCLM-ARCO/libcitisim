@@ -25,7 +25,7 @@ class CitizenReportPublisher:
         )
         ReportProperties = {"latitude": 23.254466, "longitude": -1.2546855, "altitude": 735}
         publisher.publish(value, meta=ReportProperties)
-        print("Published ReportEvent event: {}. C".format(value.reportid))
+        print("Published ReportEvent event, id: {}".format(value.reportid))
 
 
 

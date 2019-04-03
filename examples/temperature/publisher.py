@@ -9,18 +9,15 @@ from libcitisim import Broker
 class TemperaturePublisher:
     def run(self, args):
         broker = Broker('publisher.config')
+
         publisher = broker.get_publisher(
-            topic_name = "Temperature",
-            source = "TestSensor")
+            source = "FFFF735700000002",
+            transducer_type = "TemperatureSensor"
+        )
 
         value = 16.5
-        while True:
-            try:
-                publisher.publish(value)
-                print("Published Temperature event: {}. C".format(value))
-                time.sleep(10)
-            except KeyboardInterrupt:
-                break
+        publisher.publish(value)
+        print("Published Temperature event: {} C".format(value))
 
 
 if __name__ == "__main__":
