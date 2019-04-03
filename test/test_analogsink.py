@@ -1,8 +1,9 @@
 # -*- coding: utf-8; mode: python -*-
 
+import os
+import contextlib
 from time import time
 from io import StringIO
-import contextlib
 from doublex import (
     assert_that, called, method_returning, method_raising, Mimic, Spy
 )
@@ -173,5 +174,45 @@ class AnalogSinkPublisherTests(AnalogEventsMixin, TestCase):
         assert_that(SmartObject.MetadataField.Timestamp not in got_meta)
 
 
+class BidirAnalogSinkPublisherTests(AnalogEventsMixin, TestCase):
+    @classmethod
+    def setUpClass(cls):
+        print("- setting up class...")
+        cls.pwd = os.path.dirname(__file__)
+        cls.config = os.path.join(cls.pwd, "tests-bidir.config")
+
+        cls.run_icestorm_server()
+        cls.run_property_server()
+        cls.run_welcome_server()
+
+    def setUp(self):
+        AnalogEventsMixin.setUp(self)
+
+        self.value = 123.5
+        self.meta = {"quality": 200}
+        self.servant = Mimic(Spy, SmartObject.AnalogSink)
+        self.proxy = self._adapter_add(AnalogSinkI(self.servant))
+
+    def test_bidir_publisher_simple_event(self):
+        # create a reusable publisher for the given source
+        # - meta with timestamp auto-updated
+        source = "0011223344556677"
+        transducer_type = "CurrentSensor"
+
+        p = self.broker.get_publisher(source, transducer_type)
+        p.subscribe(self.proxy)
+        p.publish(self.value)
+
+        assert_that(self.servant.notify,
+                    called().
+                    with_args(self.value, anything(), anything(), anything()).
+                    async(timeout=2))
+
+        got_meta = self.servant.notify.calls[0].args[2]
+        got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
+        assert_that(got_ts, close_to(time(), 10))
+
+        got_source = self.servant.notify.calls[0].args[1]
+        assert_that(len(got_source), greater_than(5))
 
 

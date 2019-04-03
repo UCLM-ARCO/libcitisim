@@ -1,3 +1,9 @@
+libcitisim (0.20190403-1) unstable; urgency=low
+
+  * New release, fix bidir support on publisher setup
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 03 Apr 2019 08:58:32 +0200
+
 libcitisim (0.20190402-1) unstable; urgency=low
 
   * New release, add support for subscribe_to_publisher()

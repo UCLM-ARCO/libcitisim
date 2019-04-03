@@ -84,14 +84,14 @@ class MetadataHelper:
         fields = {}
         for key, value in meta.items():
             if not isinstance(key, MetadataField):
-                logging.warn(
+                logger.warn(
                     "Invalid metadata key: '{}'. MetadataField type required.".format(key))
                 continue
 
             key = key.name.lower()
             cast = datamodel.metadata.get(key)
             if cast is None:
-                logging.warn("Invalid metadata key: '{}'".format(key))
+                logger.warn("Invalid metadata key: '{}'".format(key))
                 continue
 
             fields[key] = cast.apply(value)
@@ -273,7 +273,7 @@ class Broker:
     def _set_default_properties(self):
         for key, value in default_config.items():
             if not self.props.getProperty(key):
-                logging.info("Setting default value for property '{}' = '{}'".format(key, value))
+                logger.info("setting default value for property '{}' = '{}'".format(key, value))
                 self.props.setProperty(key, value)
 
     @memoizedproperty
@@ -312,7 +312,7 @@ class Broker:
                 "You must provide the '{}' configuration property.".format(
                     WELCOME_SERVER_PROXY))
 
-        return SmartObject.WelcomeServicePrx.uncheckedCast(proxy)
+        return SmartObject.WelcomeServicePrx.checkedCast(proxy)
 
     @memoizedproperty
     def wiring_server(self):
@@ -325,7 +325,13 @@ class Broker:
         return SmartServices.WiringServicePrx.checkedCast(proxy)
 
     def hello(self, address, transducer_type):
-        self.welcome_server.hello(address, transducer_type)
+        if self.is_bidir:
+            logger.debug("calling helloBidir() on WelcomeServer")
+            self.welcome_server.ice_getConnection().setAdapter(self.adapter)
+            self.welcome_server.helloBidir(address, transducer_type)
+        else:
+            logger.debug("calling hello() on WelcomeServer")
+            self.welcome_server.hello(address, transducer_type)
 
     def subscribe(self, topic_name, callback):
         proxy = self._get_servant_proxy(topic_name, callback)
@@ -359,6 +365,7 @@ class Broker:
         topic.subscribeAndGetPublisher({}, proxy)
 
     def get_publisher(self, source, transducer_type, meta={}):
+        logger.debug("retrieving publisher for '{}'...".format(source))
         pub = ObservablePublisher(self, source, transducer_type, meta)
         pub_prx = self.adapter.add(pub, Ice.stringToIdentity(source))
         self.hello(str(pub_prx), transducer_type)
