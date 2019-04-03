@@ -1,3 +1,9 @@
+libcitisim (1.20190403-1) unstable; urgency=low
+
+  * New release, update release major number
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 03 Apr 2019 11:08:05 +0200
+
 libcitisim (0.20190403-1) unstable; urgency=low
 
   * New release, fix bidir support on publisher setup
