@@ -244,7 +244,7 @@ class Broker:
         Citizen.ReportSink: ReportSinkI,
     }
 
-    def __init__(self, arg, ic=None):
+    def __init__(self, arg=None, ic=None):
         self._ic = ic
         if ic is None:
             if isinstance(arg, str):
@@ -268,7 +268,8 @@ class Broker:
     def __del__(self):
         if hasattr(self, '_adapter_created'):
             self.adapter.deactivate()
-        self._ic.destroy()
+        if self._ic is not None:
+            self._ic.destroy()
 
     def _set_default_properties(self):
         for key, value in default_config.items():
