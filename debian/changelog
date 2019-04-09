@@ -1,3 +1,9 @@
+libcitisim (1.20190409-1) unstable; urgency=low
+
+  * New release, update static field on datamodel
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 09 Apr 2019 14:58:47 +0200
+
 libcitisim (1.20190404-1) unstable; urgency=low
 
   * New release, some minor fixes

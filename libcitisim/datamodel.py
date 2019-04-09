@@ -123,6 +123,7 @@ topic_types = {
 
     "Unconfigured": SmartObject.AnalogSink,
 
+    "DoorState": SmartObject.DigitalSink,
     "Twilight": SmartObject.DigitalSink,
 
     "CitizenReport": Citizen.ReportSink,
@@ -134,11 +135,14 @@ transducer_types = {
     'TemperatureSensor': SmartObject.AnalogSink,
     'HumiditySensor': SmartObject.AnalogSink,
     'PressureSensor': SmartObject.AnalogSink,
+    'Anemometer': SmartObject.AnalogSink,
+    'Windvane': SmartObject.AnalogSink,
+    'Pluviometer': SmartObject.AnalogSink,
     'VibrationSensor': SmartObject.AnalogSink,
     'VoltageSensor': SmartObject.AnalogSink,
-    'WindSpeedSensor': SmartObject.AnalogSink,
-    'PowerSensor': SmartObject.AnalogSink,
     'CurrentSensor': SmartObject.AnalogSink,
+    'PowerSensor': SmartObject.AnalogSink,
+    'CapacitySensor': SmartObject.AnalogSink,
     'EnergySensor': SmartObject.AnalogSink,
     'ParticulateMatterSensor': SmartObject.AnalogSink,
     'GasSensor': SmartObject.AnalogSink,
@@ -157,11 +161,22 @@ transducer_types = {
 
 
 UNITS = [
-    'wats',
-    'celsius',
-    'kWh',
-    '%',
-    'ppm',
+    'watts',         # energy
+    'kWh',           # energy
+    'volts',         # voltage
+    'amperes',       # current
+    'volt-amperes',  # apparent power
+    'mAh',           # battery capacity
+    'celsius',       # temperature
+    'degrees',       # angle
+    '%',             # percentage
+    '%RH',           # relative humidity
+    'ppm',           # parts per million
+    'mm',            # distance, width, length...
+    'mm/hour',       # volume, speed
+    'mm/day',        # volume, speed
+    'km/h',          # speed
+    'bool',          # presence, ausence, binary properties
 ]
 
 
@@ -169,6 +184,7 @@ MAGNITUDES = [
     'electrical-power',
     'temperature',
     'humidity',
+    'level',
 ]
 
 
