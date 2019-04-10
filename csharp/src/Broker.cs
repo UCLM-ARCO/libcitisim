@@ -192,67 +192,84 @@ namespace LibCitisim {
     }
 
     public class ADPublisher {
+        // FIXME: to remove!!
+
+        public void Publish(dynamic value, string source="", StringDict meta=null) {
+        }
+    }
+
+    public class ObservablePublisher : SmartObject.ObservableDisp_ {
         private Logger logger = Logger.GetLogger("libcitisim");
 
-        private Broker broker;
-        private string topicName;
-        private string source;
-        private StringDict meta;
-        private Type type;
-        private dynamic publisher;
+        // private Broker broker;
+        // private string topicName;
+        // private string source;
+        // private StringDict meta;
+        // private Type type;
+        // private dynamic publisher;
 
-        public ADPublisher(Broker broker, string topicName, string source="", StringDict meta=null) {
-            if (string.IsNullOrEmpty(source))
-                source = Guid.NewGuid().ToString("N").Substring(0, 8);
-            if (meta == null)
-                meta = new StringDict();
+        public ObservablePublisher(
+                Broker broker, string source, string transducerType, StringDict meta=null) {
 
-            this.broker = broker;
-            this.topicName = topicName;
-            this.source = source;
-            this.meta = meta;
+        //     if (string.IsNullOrEmpty(source))
+        //         source = Guid.NewGuid().ToString("N").Substring(0, 8);
+        //     if (meta == null)
+        //         meta = new StringDict();
 
-            if (!DataModel.TopicTypes.TryGetValue(topicName, out type))
-                throw new ArgumentException($"Unknown topic name: '{topicName}'");
+        //     this.broker = broker;
+        //     this.topicName = topicName;
+        //     this.source = source;
+        //     this.meta = meta;
+
+        //     if (!DataModel.TopicTypes.TryGetValue(topicName, out type))
+        //         throw new ArgumentException($"Unknown topic name: '{topicName}'");
         }
 
-        public void Publish(dynamic value, string source=null, StringDict meta=null) {
-            if (publisher is null)
-                RetrievePublisher();
-            if (source is null)
-                source = this.source;
-            if (meta is null)
-                meta = this.meta;
+        public override void setObserver(string observer, Ice.Current current) {
 
-            // double is not supported, cast to float
-            if (value.GetType() == typeof(double))
-                value = (float)value;
-
-            // if there is "timestamp" but explicitly set to None, then
-            // remove ts from meta, otherwise (there is no "timestamp" key
-            // in meta), set it as now
-            if (! meta.ContainsKey("timestamp"))
-                meta["timestamp"] = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds().ToString();
-            else if (meta["timestamp"] is null)
-                meta.Remove("timestamp");
-
-            var meta_ = MetadataUtil.FromDict(meta);
-            publisher.notify(value, source, meta_);
-
-            string strmeta = "{";
-            foreach (var i in meta_)
-                strmeta += $"{i.Key}: '{i.Value}',";
-            strmeta += "}";
-            logger.Debug(
-                $"publish event on '{topicName}', value: {value}, source: {source}, meta: {strmeta}"
-            );
         }
 
-        private void RetrievePublisher() {
-            var topic = broker.GetTopic(topicName);
-            var publisher = topic.getPublisher();
-            ProxyCasting cast = Broker.ProxyTypes[type];
-            this.publisher = cast(publisher);
+        public void Publish(dynamic value, StringDict meta=null) {
+        //     if (publisher is null)
+        //         RetrievePublisher();
+        //     if (source is null)
+        //         source = this.source;
+        //     if (meta is null)
+        //         meta = this.meta;
+
+        //     // double is not supported, cast to float
+        //     if (value.GetType() == typeof(double))
+        //         value = (float)value;
+
+        //     // if there is "timestamp" but explicitly set to None, then
+        //     // remove ts from meta, otherwise (there is no "timestamp" key
+        //     // in meta), set it as now
+        //     if (! meta.ContainsKey("timestamp"))
+        //         meta["timestamp"] = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds().ToString();
+        //     else if (meta["timestamp"] is null)
+        //         meta.Remove("timestamp");
+
+        //     var meta_ = MetadataUtil.FromDict(meta);
+        //     publisher.notify(value, source, meta_);
+
+        //     string strmeta = "{";
+        //     foreach (var i in meta_)
+        //         strmeta += $"{i.Key}: '{i.Value}',";
+        //     strmeta += "}";
+        //     logger.Debug(
+        //         $"publish event on '{topicName}', value: {value}, source: {source}, meta: {strmeta}"
+        //     );
+        }
+
+        // private void RetrievePublisher() {
+        //     var topic = broker.GetTopic(topicName);
+        //     var publisher = topic.getPublisher();
+        //     ProxyCasting cast = Broker.ProxyTypes[type];
+        //     this.publisher = cast(publisher);
+        // }
+
+        public void Subscribe(Ice.ObjectPrx observer) {
+
         }
     }
 
@@ -260,6 +277,7 @@ namespace LibCitisim {
 
     public sealed class Broker : IDisposable {
 
+        // these are the cached values of the properties
         private Ice.ObjectAdapter _adapter;
         private IceStorm.TopicManagerPrx _topicManager;
         private PropertyServerPrx _propertyManager;
@@ -338,7 +356,8 @@ namespace LibCitisim {
         public void Dispose() {
             if (_adapter != null)
                 _adapter.deactivate();
-            ic.destroy();
+            if (ic != null)
+                ic.destroy();
             logger.Debug("broker correctly disposed");
         }
 
@@ -384,7 +403,15 @@ namespace LibCitisim {
 
         // FIXME: wiring_server property goes here
 
-        // FIXME: hello() goes here
+        public void hello(string address, string transducetType) {
+            // if self.is_bidir:
+                // logger.debug("calling helloBidir() on WelcomeServer")
+                // self.welcome_server.ice_getConnection().setAdapter(self.adapter)
+                // self.welcome_server.helloBidir(address, transducer_type)
+            // else:
+                // logger.debug("calling hello() on WelcomeServer")
+                // self.welcome_server.hello(address, transducer_type)
+        }
 
         public void Subscribe(string topicName, ADSubscriber callback) {
             Ice.ObjectPrx proxy = GetServantProxy(topicName, callback);
@@ -396,13 +423,25 @@ namespace LibCitisim {
             logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
         }
 
-        public void Publish(string topicName, dynamic value, string source="", StringDict meta=null) {
-            var p = new ADPublisher(this, topicName, source, meta);
-            p.Publish(value);
+        // FIXME: subscribe_to_publisher() goes here
+
+        public void Publish(string n, dynamic v, string source="", StringDict meta=null) {
+            // FIXME: to remove!!
         }
 
-        public ADPublisher GetPublisher(string topicName, string source="", StringDict meta=null) {
-            return new ADPublisher(this, topicName, source, meta);
+        public ADPublisher GetPublisher(string a, string b="", string c="", StringDict meta=null) {
+            // FIXME: to remove!!
+            return new ADPublisher();
+        }
+
+        public ObservablePublisher GetPublisher(
+                string source, string transducerType, StringDict meta=null) {
+
+            logger.Debug($"retrieving publisher for '{source}'...");
+            var pub = new ObservablePublisher(this, source, transducerType, meta);
+            var pub_prx = adapter.add(pub, Ice.Util.stringToIdentity(source));
+            hello(pub_prx.ToString(), transducerType);
+            return pub;
         }
 
         public void WaitForEvents() {

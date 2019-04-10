@@ -26,6 +26,10 @@ $(OUT_DIR):
 test:
 	dotnet test
 
+test-this: F ?= ""
+test-this:
+	dotnet test --filter "$(F)"
+
 package:
 	dotnet publish -o $$(pwd)/LibCitisim src
 	zip -r libcitisim-cs-$(VER).zip LibCitisim/*.dll -x LibCitisim/Microsoft.CSharp.dll

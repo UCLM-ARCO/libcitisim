@@ -370,7 +370,6 @@ class Broker:
         pub = ObservablePublisher(self, source, transducer_type, meta)
         pub_prx = self.adapter.add(pub, Ice.stringToIdentity(source))
         self.hello(str(pub_prx), transducer_type)
-        # self.adapter.remove(pub_prx.ice_getIdentity())
         return pub
 
     def wait_for_events(self):
