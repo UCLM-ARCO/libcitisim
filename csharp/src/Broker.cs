@@ -50,12 +50,14 @@ namespace LibCitisim {
         }
 
         public static Logger GetLogger(string name) {
-            Logger retval;
-            if (!instances.TryGetValue(name, out retval)) {
-                retval = new Logger(name);
-                instances[name] = retval;
+            lock (instances) {
+                Logger retval;
+                if (!instances.TryGetValue(name, out retval)) {
+                    retval = new Logger(name);
+                    instances[name] = retval;
+                }
+                return retval;
             }
-            return retval;
         }
 
         public void Debug(string message) {
