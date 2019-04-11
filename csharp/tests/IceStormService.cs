@@ -8,7 +8,7 @@ using Xunit;
 
 namespace LibCitisim {
 
-    class ISService : IDisposable {
+    public class ISService : IDisposable {
         private static ISService instance = null;
         private static readonly object safe = new object();
 
@@ -82,21 +82,4 @@ namespace LibCitisim {
             }
         }
     }
-
-    // This class is for initializing the IceStorm service, given
-    // in the format of a Collection Fixture
-    public class IceStormFixture : IDisposable {
-        public IceStormFixture() {
-            Console.WriteLine("++++ launch IS service");
-            ISService.StartService();
-        }
-
-        public void Dispose() {
-            Console.WriteLine("---- stop IS service");
-            ISService.StopService();
-        }
-    }
-
-    [CollectionDefinition("IceStorm Collection")]
-    public class IceStormCollection : ICollectionFixture<IceStormFixture> { }
 }

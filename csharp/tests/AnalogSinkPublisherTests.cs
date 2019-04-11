@@ -13,13 +13,13 @@ using StringDict = System.Collections.Generic.Dictionary<string, string>;
 
 namespace LibCitisim {
 
-    [Collection("IceStorm Collection")]
+    [Collection("AllServers Collection")]
     public class AnalogSinkPublisherTests : AnalogEventsMixin {
 
         private string source = "0011223344556677";
         private string transducerType = "CurrentSensor";
         private float value = 123.5f;
-        private StringDict meta = new StringDict() { { "quality", "200" } };
+        private StringDict meta = new StringDict() {{ "quality", "200" }};
 
         private Ice.ObjectPrx proxy;
         private Mock<AnalogSinkDisp_> servant = new Mock<AnalogSinkDisp_> {CallBase = true};
@@ -43,7 +43,7 @@ namespace LibCitisim {
                 .Callback(() => ev.Set())
                 .Verifiable();
 
-            var p = broker.GetPublisher(source, transducerType);
+            ObservablePublisher p = broker.GetPublisher(source, transducerType);
             p.Subscribe(proxy);
             p.Publish(value);
 

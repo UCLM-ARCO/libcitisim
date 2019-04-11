@@ -58,6 +58,32 @@ namespace LibCitisim {
             {"Twilight", typeof(SmartObject.DigitalSink)},
         };
 
+        public static Dictionary<string, Type> TransducerTypes = new Dictionary<string, Type> {
+            {"LightSensor", typeof(SmartObject.AnalogSink)},
+            {"TemperatureSensor", typeof(SmartObject.AnalogSink)},
+            {"HumiditySensor", typeof(SmartObject.AnalogSink)},
+            {"PressureSensor", typeof(SmartObject.AnalogSink)},
+            {"Anemometer", typeof(SmartObject.AnalogSink)},
+            {"Windvane", typeof(SmartObject.AnalogSink)},
+            {"Pluviometer", typeof(SmartObject.AnalogSink)},
+            {"VibrationSensor", typeof(SmartObject.AnalogSink)},
+            {"VoltageSensor", typeof(SmartObject.AnalogSink)},
+            {"CurrentSensor", typeof(SmartObject.AnalogSink)},
+            {"PowerSensor", typeof(SmartObject.AnalogSink)},
+            {"CapacitySensor", typeof(SmartObject.AnalogSink)},
+            {"EnergySensor", typeof(SmartObject.AnalogSink)},
+            {"ParticulateMatterSensor", typeof(SmartObject.AnalogSink)},
+            {"GasSensor", typeof(SmartObject.AnalogSink)},
+            {"VolumeSensor", typeof(SmartObject.AnalogSink)},
+            {"RadiationSensor", typeof(SmartObject.AnalogSink)},
+            {"MotorActuator", typeof(SmartObject.AnalogSink)},
+            {"DimmableLightActuator", typeof(SmartObject.AnalogSink)},
+
+            {"TwilightSensor", typeof(SmartObject.DigitalSink)},
+            {"DoorSensor", typeof(SmartObject.DigitalSink)},
+            {"RelayActuator", typeof(SmartObject.DigitalSink)},
+        };
+
         public static List<string> Units = new List<string> {
             "wats",
             "celsius",

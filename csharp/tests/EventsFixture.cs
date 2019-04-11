@@ -27,7 +27,8 @@ namespace LibCitisim {
             // the real subject under testing
             try {
                 broker = Broker.Initialize(config);
-            }catch(InvalidOperationException) {
+            }
+            catch(InvalidOperationException) {
                 broker = Broker.GetBroker();
             }
         }

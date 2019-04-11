@@ -148,13 +148,12 @@ transducer_types = {
     'GasSensor': SmartObject.AnalogSink,
     'VolumeSensor': SmartObject.AnalogSink,
     'RadiationSensor': SmartObject.AnalogSink,
+    'MotorActuator': SmartObject.AnalogSink,
+    'DimmableLightActuator': SmartObject.AnalogSink,
 
     'TwilightSensor': SmartObject.DigitalSink,
     'DoorSensor': SmartObject.DigitalSink,
-
     'RelayActuator': SmartObject.DigitalSink,
-    'MotorActuator': SmartObject.AnalogSink,
-    'DimmableLightActuator': SmartObject.AnalogSink,
 
     'CitizenReporter': Citizen.ReportSink,
 }

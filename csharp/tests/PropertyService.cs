@@ -4,9 +4,10 @@ using System.Text;
 using System.Threading;
 using Xunit;
 
-namespace LibCitisim {
+namespace LibCitisim
+{
 
-    class PSService : IDisposable {
+    public class PSService : IDisposable {
         private static PSService instance = null;
         private static readonly object safe = new object();
 
@@ -75,24 +76,5 @@ namespace LibCitisim {
                 instance = new PSService();
             }
         }
-    }
-
-    // This class is for initializing the Property Server, given
-    // in the format of a Collection Fixture
-    public class PropertyServerFixture : IDisposable {
-        public PropertyServerFixture() {
-            Console.WriteLine("++++ launch PS service");
-            PSService.StartService();
-        }
-
-        public void Dispose() {
-            Console.WriteLine("---- stop PS service");
-            PSService.StopService();
-        }
-    }
-
-    [CollectionDefinition("PropertyServer Collection")]
-    public class PropertyServerCollection : ICollectionFixture<PropertyServerFixture> {
-
     }
 }
