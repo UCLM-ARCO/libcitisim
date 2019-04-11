@@ -22,10 +22,12 @@ namespace LibCitisim {
         private StringDict meta = new StringDict() {{ "quality", "200" }};
 
         private Ice.ObjectPrx proxy;
-        private Mock<AnalogSinkDisp_> servant = new Mock<AnalogSinkDisp_> {CallBase = true};
-        private EventWaitHandle ev = new EventWaitHandle(false, EventResetMode.AutoReset);
+        private Mock<AnalogSinkDisp_> servant;
+        private EventWaitHandle ev;
 
         public AnalogSinkPublisherTests() {
+            ev = new EventWaitHandle(false, EventResetMode.AutoReset);
+            servant = new Mock<AnalogSinkDisp_> {CallBase = true};
             proxy = AdapterAdd((Ice.Object)servant.Object);
         }
 
@@ -43,7 +45,7 @@ namespace LibCitisim {
                 .Callback(() => ev.Set())
                 .Verifiable();
 
-            ObservablePublisher p = broker.GetPublisher(source, transducerType);
+            var p = broker.GetPublisher(source, transducerType);
             p.Subscribe(proxy);
             p.Publish(value);
 
@@ -51,31 +53,31 @@ namespace LibCitisim {
             servant.Verify();
         }
 
-        // [Fact]
-        // public void Publisher_WithDefaultSourceAndMeta() {
-        //     // create a reusable publisher, set source and meta as
-        //     // specified plus Timestamp field
+        [Fact]
+        public void Publisher_WithDefaultSourceAndMeta() {
+            // create a reusable publisher, set source and meta as
+            // specified plus Timestamp field
 
-        //     var source = "Source123";
-        //     var meta = new StringDict() {{"quality", "24"}};
+            var meta = new StringDict() {{"quality", "24"}};
 
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             source,
-        //             Match.Create<Metadata>(CheckMeta(new Metadata() {
-        //                 {MetadataField.Quality, meta["quality"]}
-        //             })),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+            servant.Setup(
+                m => m.notify(
+                    value,
+                    source,
+                    Match.Create<Metadata>(CheckMeta(new Metadata() {
+                        {MetadataField.Quality, meta["quality"]}
+                    })),
+                    It.IsAny<Ice.Current>()))
+                .Callback(() => ev.Set())
+                .Verifiable();
 
-        //     var p = broker.GetPublisher(topicName, source, meta);
-        //     p.Publish(value);
+            var p = broker.GetPublisher(source, transducerType, meta);
+            p.Subscribe(proxy);
+            p.Publish(value);
 
-        //     ev.WaitOne(2000);
-        //     servant.Verify();
-        // }
+            ev.WaitOne(2000);
+            servant.Verify();
+        }
 
         // [Fact]
         // public void Publisher_WithOverriddenSource_JustOnce() {

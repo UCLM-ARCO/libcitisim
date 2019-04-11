@@ -14,6 +14,7 @@ namespace LibCitisim {
         private Ice.ObjectAdapter adapter;
 
         public EventsFixture() {
+            Console.WriteLine("Setting up for next test...");
             config = pwd + "/tests.config";
 
             // for testing purposes only
@@ -37,6 +38,7 @@ namespace LibCitisim {
             ic.shutdown();
             ic.destroy();
             adapter.deactivate();
+            Broker.ForgetInstance();
             Console.WriteLine(">>> disposed test");
         }
 
