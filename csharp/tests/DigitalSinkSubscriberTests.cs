@@ -4,7 +4,7 @@ using Xunit;
 
 namespace LibCitisim {
 
-    [Collection("IceStorm Collection")]
+    [Collection("AllServers Collection")]
     public class DigitalSinkSubscriberTests : DigitalEventsMixin {
 
         private string topicName = "Twilight";

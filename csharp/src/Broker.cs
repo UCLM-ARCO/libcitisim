@@ -191,12 +191,6 @@ namespace LibCitisim {
         }
     }
 
-    public class ADPublisher {
-        // FIXME: to remove!!
-        public void Publish(dynamic value, string source="", StringDict meta=null) {
-        }
-    }
-
     public class ObservablePublisher : SmartObject.ObservableDisp_ {
         private Logger logger = Logger.GetLogger("libcitisim");
 
@@ -230,6 +224,7 @@ namespace LibCitisim {
             if (!DataModel.TransducerTypes.TryGetValue(transducerType, out type))
                 throw new ArgumentException($"Unknown transducer type: {transducerType}");
             observerCast = ProxyTypes[type];
+            Console.WriteLine(type);
         }
 
         public override void setObserver(string observer, Ice.Current current) {
@@ -274,8 +269,8 @@ namespace LibCitisim {
 
         public void Subscribe(Ice.ObjectPrx observer) {
             var propKey = source + " | private-channel";
-            var channelName = broker.GetProperty(propKey);
-            Console.WriteLine(channelName);
+            var channelName = JsonConvert.DeserializeObject<string>(
+                broker.GetProperty(propKey));
             var topic = broker.GetTopic(channelName);
             topic.subscribeAndGetPublisher(null, observer);
             logger.Debug($"subscribe observer to topic '{channelName}'");
@@ -399,7 +394,6 @@ namespace LibCitisim {
 
         // FIXME: adapter_add() goes here
 
-        // FIXME: welcome_server property goes here
         public WelcomeServicePrx WelcomeServer {
             get {
                 if (_welcomeServer != null)
@@ -417,8 +411,8 @@ namespace LibCitisim {
         public void hello(string address, string transducerType) {
             if (isBidir) {
                 logger.Debug("calling helloBidir() on WelcomeServer");
-                // self.welcome_server.ice_getConnection().setAdapter(self.adapter)
-                // self.welcome_server.helloBidir(address, transducer_type)
+                WelcomeServer.ice_getConnection().setAdapter(adapter);
+                WelcomeServer.helloBidir(address, transducerType);
             }
             else {
                 logger.Debug("calling hello() on WelcomeServer");
@@ -428,18 +422,43 @@ namespace LibCitisim {
 
         public void Subscribe(string topicName, ADSubscriber callback) {
             Ice.ObjectPrx proxy = GetServantProxy(topicName, callback);
+            SubscribeProxy(topicName, proxy);
+        }
+
+        public void SubscribeToPublisher(string source, ADSubscriber callback) {
+            try {
+                var privateChannelKey = source + " | private-channel";
+                string topicName = JsonConvert.DeserializeObject<string>(
+                    GetProperty(privateChannelKey));
+
+                var typeKey = source + " | transducer-type";
+                string transducerType = JsonConvert.DeserializeObject<string>(
+                    GetProperty(typeKey));
+
+                Type type;
+                if (!DataModel.TransducerTypes.TryGetValue(transducerType, out type)) {
+                    throw new ArgumentException($"unknown transducer type: '{transducerType}'");
+                }
+
+                Ice.Object servant = (Ice.Object)Activator.CreateInstance(
+                    ServantTypes[type], topicName, callback);
+                var proxy = adapter.addWithUUID(servant);
+
+                SubscribeProxy(topicName, proxy);
+            }
+            catch (System.Exception e) {
+                throw new ArgumentException(
+                    $"Unknown or invalid publisher: {source}, error: {e}");
+            }
+        }
+
+        private void SubscribeProxy(string topicName, Ice.ObjectPrx proxy) {
             IceStorm.TopicPrx topic = GetTopic(topicName);
 
             if (isBidir)
                 topic.ice_getConnection().setAdapter(_adapter);
             topic.subscribeAndGetPublisher(null, proxy);
             logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
-        }
-
-        // FIXME: subscribe_to_publisher() goes here
-
-        public void Publish(string n, dynamic v, string source="", StringDict meta=null) {
-            // FIXME: to remove!!
         }
 
         public ObservablePublisher GetPublisher(
@@ -469,21 +488,19 @@ namespace LibCitisim {
             Ice.Object servant = (Ice.Object)Activator.CreateInstance(
                 ServantTypes[type], topicName, callback);
             var proxy = adapter.addWithUUID(servant);
-            if (proxy.ice_isTwoway())
-                proxy = proxy.ice_oneway();
             return proxy;
         }
 
         internal TopicPrx GetTopic(string topicName) {
             try {
-                return topicManager.retrieve(topicName);
+                return TopicManager.retrieve(topicName);
             }
             catch (IceStorm.NoSuchTopic) {
-                return topicManager.create(topicName);
+                return TopicManager.create(topicName);
             }
         }
 
-        public TopicManagerPrx topicManager {
+        public TopicManagerPrx TopicManager {
             get {
                 if (_topicManager != null)
                     return _topicManager;
@@ -497,14 +514,15 @@ namespace LibCitisim {
 
         public void SetProperty(string path, dynamic value) {
             value = JsonConvert.SerializeObject(value);
-            propertyManager.set(path, value);
+            PropertyManager.set(path, value);
         }
 
+        // Note: do not deserialize here, or provide a method to retrieve a list, a dict...
         public string GetProperty(string path) {
-            return JsonConvert.DeserializeObject(propertyManager.get(path)).ToString();
+            return PropertyManager.get(path);
         }
 
-        internal PropertyServerPrx propertyManager {
+        public PropertyServerPrx PropertyManager {
             get {
                 if (_propertyManager != null)
                     return _propertyManager;

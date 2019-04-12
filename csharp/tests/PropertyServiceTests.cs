@@ -44,7 +44,7 @@ namespace LibCitisim {
                 if (_manager != null)
                     return _manager;
 
-                var proxy = ic.propertyToProxy("PropertyService.Proxy");
+                var proxy = ic.propertyToProxy("PropertyServer.Proxy");
                 _manager = PropertyServerPrxHelper.checkedCast(proxy);
                 return _manager;
             }
@@ -59,7 +59,7 @@ namespace LibCitisim {
         }
     }
 
-    [Collection("PropertyServer Collection")]
+    [Collection("AllServers Collection")]
     public class PropertyServerTests : PropertyMixin {
 
         [Fact]

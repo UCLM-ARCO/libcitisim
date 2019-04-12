@@ -385,8 +385,6 @@ class Broker:
 
         servant = self.servant_types[type_](topic_name, callback)
         proxy = self.adapter.addWithUUID(servant)
-        if proxy.ice_isTwoway():
-            proxy = proxy.ice_oneway()
         return proxy
 
     def get_topic(self, name):

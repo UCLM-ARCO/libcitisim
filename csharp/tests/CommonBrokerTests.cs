@@ -48,7 +48,7 @@ namespace LibCitisim {
             var sut = Broker.Initialize("");
 
             Assert.Throws<Ice.NoEndpointException>(() => {
-                Console.WriteLine(sut.topicManager);
+                Console.WriteLine(sut.TopicManager);
             });
         }
     }

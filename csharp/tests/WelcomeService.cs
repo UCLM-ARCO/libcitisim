@@ -38,7 +38,7 @@ namespace LibCitisim {
             });
             welcomeServer.ErrorDataReceived += new DataReceivedEventHandler((sender, e) => {
                 if (!String.IsNullOrEmpty(e.Data)) {
-                    Console.WriteLine("ERROR:" + e.Data);
+                    Console.WriteLine(e.Data);
                 }
             });
             Assert.True(welcomeServer.Start());
@@ -47,7 +47,7 @@ namespace LibCitisim {
 
             ev.WaitOne(5000);
             if (welcomeServer.HasExited) {
-                Console.WriteLine("ERROR:" + welcomeServer.StandardError.ReadToEnd());
+                Console.WriteLine(welcomeServer.StandardError.ReadToEnd());
             }
             Assert.Contains("WelcomeServer -t -e 1.1:tcp -h 127.0.0.1", output.ToString());
         }

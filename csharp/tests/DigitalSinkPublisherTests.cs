@@ -13,12 +13,12 @@ using StringDict = System.Collections.Generic.Dictionary<string, string>;
 
 namespace LibCitisim {
 
-    [Collection("IceStorm Collection")]
+    [Collection("AllServers Collection")]
     public class DigitalSinkPublisherTests : DigitalEventsMixin {
 
-        private string topicName = "Twilight";
         private bool value = true;
         private string source = "TestSource";
+        private string transducerType = "TwilightSensor";
         private StringDict meta = new StringDict() { { "quality", "254" } };
 
         private Mock<DigitalSinkDisp_> servant = new Mock<DigitalSinkDisp_> {CallBase = true};
@@ -27,240 +27,169 @@ namespace LibCitisim {
 
         public DigitalSinkPublisherTests() {
             proxy = AdapterAdd((Ice.Object)servant.Object);
-            Subscribe(topicName, proxy);
+            // Subscribe(topicName, proxy);
         }
 
-        // [Fact]
-        // public void OneTimePublish_EventIsOK() {
-        //     // create a one-time-usage publisher, set source as a random
-        //     // string, meta with timestamp updated
+        [Fact]
+        public void Publisher_SimpleEvent() {
+            // create a reusable publisher for the given source
+            // - meta with timestamp updated
 
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             It.Is<string>(s => s.Length > 5),
-        //             Match.Create<Metadata>(CheckMeta(null)),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+            servant.Setup(
+                m => m.notify(
+                    value,
+                    It.Is<string>(s => s.Length > 5),
+                    Match.Create<Metadata>(CheckMeta(null)),
+                    It.IsAny<Ice.Current>()))
+                .Callback(() => ev.Set())
+                .Verifiable();
 
-        //     broker.Publish(topicName, value);
+            var p = broker.GetPublisher(source, transducerType);
+            p.Subscribe(proxy);
+            p.Publish(value);
 
-        //     ev.WaitOne(2000);
-        //     servant.Verify();
-        // }
+            ev.WaitOne(2000);
+            servant.Verify();
+        }
 
-        // [Fact]
-        // public void OneTimePublish_GivenSourceAndMeta() {
-        //     // create a one-time-usage publisher, set source as given, and
-        //     // meta with Timestamp and also what you set here
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             source,
-        //             Match.Create<Metadata>(CheckMeta(new Metadata() {
-        //                 {MetadataField.Quality, meta["quality"]}
-        //             })),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+        [Fact]
+        public void Publisher_WithDefaultMeta() {
+            // create a reusable publisher, set source and meta as
+            // specified plus Timestamp field
 
-        //     broker.Publish(topicName, value, source, meta);
+            var meta = new StringDict() {{"quality", "24"}};
 
-        //     ev.WaitOne(2000);
-        //     servant.Verify();
-        // }
+            servant.Setup(
+                m => m.notify(
+                    value,
+                    source,
+                    Match.Create<Metadata>(CheckMeta(new Metadata() {
+                        {MetadataField.Quality, meta["quality"]}
+                    })),
+                    It.IsAny<Ice.Current>()))
+                .Callback(() => ev.Set())
+                .Verifiable();
 
-        // [Fact]
-        // public void OneTimePublish_WithIncorrectMeta() {
-        //     // it should raise an exception as it uses the MetadataUtil
-        //     Assert.Throws<ArgumentException>(() => {
-        //         broker.Publish(topicName, 123.5, meta: new StringDict() {
-        //             {"someunknownkey", "true"}
-        //         });
-        //     });
+            var p = broker.GetPublisher(source, transducerType, meta);
+            p.Subscribe(proxy);
+            p.Publish(value);
 
-        //     Assert.Throws<FormatException>(() => {
-        //         broker.Publish(topicName, 123.5, meta: new StringDict() {
-        //             {"quality", "invalidvalue"}
-        //         });
-        //     });
-        // }
+            ev.WaitOne(2000);
+            servant.Verify();
+        }
 
-        // [Fact]
-        // public void Publisher_SimpleEvent() {
-        //     // create a reusable publisher for the given topic, source as a
-        //     // random string, meta with timestamp updated
+        [Fact]
+        public void Publisher_WithOverriddenMeta_JustOnce() {
+            // update meta only for this specific event, it will have
+            // Timestamp and also what you say here
 
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             It.Is<string>(s => s.Length > 5),
-        //             Match.Create<Metadata>(CheckMeta(null)),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+            var meta = new StringDict() {{"quality", "120"}};
 
-        //     var p = broker.GetPublisher(topicName);
-        //     p.Publish(value);
+            servant.Setup(
+                m => m.notify(
+                    value,
+                    It.IsAny<string>(),
+                    Match.Create<Metadata>(CheckMeta(new Metadata() {
+                        {MetadataField.Quality, meta["quality"]}
+                    })),
+                    It.IsAny<Ice.Current>()))
+                .Callback(() => ev.Set())
+                .Verifiable();
 
-        //     ev.WaitOne(2000);
-        //     servant.Verify();
-        // }
+            var p = broker.GetPublisher(source, transducerType);
+            p.Subscribe(proxy);
+            p.Publish(value, meta: meta);
 
-        // [Fact]
-        // public void Publisher_WithDefaultSourceAndMeta() {
-        //     // create a reusable publisher, set source and meta as
-        //     // specified plus Timestamp field
+            ev.WaitOne(2000);
+            servant.Verify();
+        }
 
-        //     var source = "Source123";
-        //     var meta = new StringDict() {{"quality", "24"}};
+        [Fact]
+        public void Publisher_WithOverriddenInvalidMeta_JustOnce() {
+            // it should raise an exception as it uses the MetadataUtil
 
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             source,
-        //             Match.Create<Metadata>(CheckMeta(new Metadata() {
-        //                 {MetadataField.Quality, meta["quality"]}
-        //             })),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+            var p = broker.GetPublisher(source, transducerType);
 
-        //     var p = broker.GetPublisher(topicName, source, meta);
-        //     p.Publish(value);
+            Assert.Throws<ArgumentException>(() => {
+                p.Publish(123.5, meta: new StringDict() {
+                    {"invalidkey", "1"}
+                });
+            });
 
-        //     ev.WaitOne(2000);
-        //     servant.Verify();
-        // }
+            Assert.Throws<FormatException>(() => {
+                p.Publish(123.5, meta: new StringDict() {
+                    {"quality", "invalidvalue"}
+                });
+            });
+        }
 
-        // [Fact]
-        // public void Publisher_WithOverriddenSource_JustOnce() {
-        //     // change source only for this specific event
-        //     var source = "Source1";
+        [Fact]
+        public void Publisher_NoTimestampInMeta_JustOnce() {
+            // create a reusable publisher for the given topic, source as a
+            // random string, meta with no timestamp
 
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             It.IsAny<string>(),
-        //             Match.Create<Metadata>(CheckMeta(null)),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+            var p = broker.GetPublisher(
+                source, transducerType, meta: new StringDict() {{"timestamp", null}});
 
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             source,
-        //             Match.Create<Metadata>(CheckMeta(null)),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+            servant.Setup(
+                m => m.notify(
+                    value,
+                    It.IsAny<string>(),
+                    Match.Create<Metadata>(CheckMeta(new Metadata() {
+                        {MetadataField.Timestamp, null}
+                    })),
+                    It.IsAny<Ice.Current>()))
+                .Callback(() => ev.Set())
+                .Verifiable();
 
-        //     var p = broker.GetPublisher(topicName);
+            p.Subscribe(proxy);
+            p.Publish(value);
 
-        //     p.Publish(value);
-        //     ev.WaitOne(2000);
+            ev.WaitOne(2000);
+            servant.Verify();
+        }
+    }
 
-        //     p.Publish(value, source: source);
-        //     ev.WaitOne(2000);
+    [Collection("AllServers Collection")]
+    public class BidirDigitalSinkPublisherTests : DigitalEventsMixin {
 
-        //     servant.Verify();
-        // }
+        private string source = "00112233445566234";
+        private string transducerType = "TwilightSensor";
+        private bool value = true;
+        private StringDict meta = new StringDict() {{ "quality", "200" }};
 
-        // [Fact]
-        // public void Publisher_WithOverriddenMeta_JustOnce() {
-        //     // update meta only for this specific event, it will have
-        //     // Timestamp and also what you say here
+        private Ice.ObjectPrx proxy;
+        private Mock<DigitalSinkDisp_> servant;
+        private EventWaitHandle ev;
 
-        //     var p = broker.GetPublisher(topicName);
-        //     var meta = new StringDict() {{"quality", "120"}};
+        public BidirDigitalSinkPublisherTests() {
+            SetupBidirBroker();
 
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             It.IsAny<string>(),
-        //             Match.Create<Metadata>(CheckMeta(new Metadata() {
-        //                 {MetadataField.Quality, meta["quality"]}
-        //             })),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
+            ev = new EventWaitHandle(false, EventResetMode.AutoReset);
+            servant = new Mock<DigitalSinkDisp_> {CallBase = true};
+            proxy = AdapterAdd((Ice.Object)servant.Object);
+        }
 
-        //     p.Publish(value, meta: meta);
+        [Fact]
+        public void Bidir_Publisher_SimpleEvent() {
+            // create a reusable publisher for the given source
+            // - meta with timestamp updated
 
-        //     ev.WaitOne(2000);
-        //     servant.Verify();
-        // }
+            servant.Setup(
+                m => m.notify(
+                    value,
+                    It.Is<string>(s => s.Length > 5),
+                    Match.Create<Metadata>(CheckMeta(null)),
+                    It.IsAny<Ice.Current>()))
+                .Callback(() => ev.Set())
+                .Verifiable();
 
-        // [Fact]
-        // public void Publisher_WithOverriddenInvalidMeta_JustOnce() {
-        //     // it should raise an exception as it uses the MetadataUtil
-        //     var p = broker.GetPublisher(topicName);
+            var p = broker.GetPublisher(source, transducerType);
+            p.Subscribe(proxy);
+            p.Publish(value);
 
-        //     Assert.Throws<ArgumentException>(() => {
-        //         p.Publish(123.5, meta: new StringDict() {
-        //             {"invalidkey", "1"}
-        //         });
-        //     });
-
-        //     Assert.Throws<FormatException>(() => {
-        //         p.Publish(123.5, meta: new StringDict() {
-        //             {"quality", "invalidvalue"}
-        //         });
-        //     });
-        // }
-
-        // [Fact]
-        // public void Publisher_NoTimestampInMeta_JustOnce() {
-        //     // create a reusable publisher for the given topic, source as a
-        //     // random string, meta with no timestamp
-
-        //     var p = broker.GetPublisher(topicName, meta: new StringDict() {{"timestamp", null}});
-
-        //     servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             It.IsAny<string>(),
-        //             Match.Create<Metadata>(CheckMeta(new Metadata() {
-        //                 {MetadataField.Timestamp, null}
-        //             })),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
-
-        //     p.Publish(value);
-
-        //     ev.WaitOne(2000);
-        //     servant.Verify();
-        // }
-
-        // [Fact]
-        // public void PublishToAllCurrentTopics() {
-        //     // if this does not raise an exception, they are valid topic names
-        //     var value = true;
-        //     foreach (var name in knownTopics) {
-        //         EventWaitHandle ev = new EventWaitHandle(false, EventResetMode.AutoReset);
-        //         Mock<DigitalSinkDisp_> servant = new Mock<DigitalSinkDisp_> {CallBase = true};
-        //         proxy = AdapterAdd((Ice.Object)servant.Object);
-        //         Subscribe(name, proxy);
-
-        //         servant.Setup(
-        //         m => m.notify(
-        //             value,
-        //             It.IsAny<string>(),
-        //             Match.Create<Metadata>(CheckMeta(null)),
-        //             It.IsAny<Ice.Current>()))
-        //         .Callback(() => ev.Set())
-        //         .Verifiable();
-
-        //         broker.Publish(name, value);
-
-        //         ev.WaitOne(2000);
-        //         servant.Verify();
-
-        //         value = !value;
-        //     }
-        // }
+            ev.WaitOne(2000);
+            servant.Verify();
+        }
     }
 }

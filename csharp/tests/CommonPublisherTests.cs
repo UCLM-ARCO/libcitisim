@@ -4,13 +4,15 @@ using Xunit;
 
 namespace LibCitisim {
 
-    [Collection("IceStorm Collection")]
+    [Collection("AllServers Collection")]
     public class CommonPublisherTests : AnalogEventsMixin {
 
         [Fact]
-        public void PublishToUnknownTopic_NotPossible() {
+        public void PublishWithUnknownTransducerType_NotPossible() {
             Assert.Throws<ArgumentException>(() => {
-                broker.Publish("UnknownTopic", 1.263);
+                broker.GetPublisher(
+                    source: "0011223344556677",
+                    transducerType: "InvalidType");
             });
         }
     }

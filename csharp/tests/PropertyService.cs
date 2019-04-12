@@ -37,7 +37,7 @@ namespace LibCitisim
             });
             psServer.ErrorDataReceived += new DataReceivedEventHandler((sender, e) => {
                 if (!String.IsNullOrEmpty(e.Data)) {
-                    Console.WriteLine("ERROR:" + e.Data);
+                    Console.WriteLine(e.Data);
                 }
             });
             Assert.True(psServer.Start());
@@ -46,7 +46,7 @@ namespace LibCitisim
 
             ev.WaitOne(5000);
             if (psServer.HasExited) {
-                Console.WriteLine("ERROR:" + psServer.StandardError.ReadToEnd());
+                Console.WriteLine(psServer.StandardError.ReadToEnd());
             }
             string expected = "PropertyServer -t -e 1.1:tcp -h";
             Assert.Equal(expected, output.ToString().Substring(0, expected.Length));

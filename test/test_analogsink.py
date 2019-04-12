@@ -93,7 +93,7 @@ class AnalogSinkPublisherTests(AnalogEventsMixin, TestCase):
         got_source = self.servant.notify.calls[0].args[1]
         assert_that(len(got_source), greater_than(5))
 
-    def test_publisher_with_default_source_and_meta(self):
+    def test_publisher_with_default_meta(self):
         # create a reusable publisher, set source and meta as
         # specified plus Timestamp field
         source = "0011223344556677"
