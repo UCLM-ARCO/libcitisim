@@ -21,7 +21,7 @@ class CommonSubscriberTests(AnalogEventsMixin, TestCase):
         self._publish_event(
             publisher + ".private", meta={"quality": 123})
 
-        assert_that(process_event, called().async(timeout=3))
+        assert_that(process_event, called().async_mode(timeout=3))
         meta = process_event.calls[0].args[2]
         for key in meta.keys():
             self.assertIsInstance(key, str)
@@ -48,7 +48,7 @@ class CommonSubscriberTests(AnalogEventsMixin, TestCase):
         self.broker.subscribe("WindVane", process_event)
         self._publish_event("WindVane", meta={"quality": 123})
 
-        assert_that(process_event, called().async(timeout=3))
+        assert_that(process_event, called().async_mode(timeout=3))
         meta = process_event.calls[0].args[2]
         for key in meta.keys():
             self.assertIsInstance(key, str)
@@ -63,4 +63,3 @@ class CommonPublisherTests(AnalogEventsMixin, TestCase):
             calling(self.broker.get_publisher).
             with_args(source, "InvalidType"),
             raises(TypeError))
-

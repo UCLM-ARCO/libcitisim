@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: python -*-
 
 from prego import TestCase
-from unittest import TestCase
 from doublex import assert_that, called, method_returning, Stub
 from hamcrest import anything
 
@@ -23,5 +22,4 @@ class WelcomeAndPublisherIntegration(AnalogEventsMixin, TestCase):
 
         assert_that(
             self.welcome.hello,
-            called().with_args(anything(), type_).async(timeout=2))
-
+            called().with_args(anything(), type_).async_mode(timeout=2))
