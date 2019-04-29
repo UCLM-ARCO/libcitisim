@@ -20,7 +20,7 @@ class DigitalSinkSubscriberTests(DigitalEventsMixin, TestCase):
         process_event = method_returning(None)
         self.broker.subscribe("Twilight", process_event)
         self._publish_event("Twilight")
-        assert_that(process_event, called().async(timeout=3))
+        assert_that(process_event, called().async_mode(timeout=3))
 
     def test_subscribe_to_all_current_topics(self):
         # this not raising an exception means the topic is known for
@@ -47,7 +47,7 @@ class DigitalSinkSubscriberTests(DigitalEventsMixin, TestCase):
         with contextlib.redirect_stderr(temp_stderr):
             self._publish_event(topic)
 
-            assert_that(process_event, called().async(timeout=1))
+            assert_that(process_event, called().async_mode(timeout=1))
             output = temp_stderr.getvalue().strip()
             expected = "There were some error on provided callback"
             print("OUT:", output)
@@ -84,7 +84,7 @@ class DigitalSinkPublisherTests(DigitalEventsMixin, TestCase):
         assert_that(self.servant.notify,
                     called().
                     with_args(self.value, anything(), anything(), anything()).
-                    async(timeout=2))
+                    async_mode(timeout=2))
 
         got_meta = self.servant.notify.calls[0].args[2]
         got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
@@ -107,7 +107,7 @@ class DigitalSinkPublisherTests(DigitalEventsMixin, TestCase):
         assert_that(self.servant.notify,
                     called().
                     with_args(self.value, source, anything(), anything()).
-                    async(timeout=2))
+                    async_mode(timeout=2))
 
         got_meta = self.servant.notify.calls[0].args[2]
         got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
@@ -130,7 +130,7 @@ class DigitalSinkPublisherTests(DigitalEventsMixin, TestCase):
         assert_that(self.servant.notify,
                     called().
                     with_args(self.value, anything(), anything(), anything()).
-                    async(timeout=2))
+                    async_mode(timeout=2))
 
         got_meta = self.servant.notify.calls[0].args[2]
         got_ts = int(got_meta[SmartObject.MetadataField.Timestamp])
@@ -169,7 +169,7 @@ class DigitalSinkPublisherTests(DigitalEventsMixin, TestCase):
         assert_that(self.servant.notify,
                     called().
                     with_args(self.value, anything(), anything(), anything()).
-                    async(timeout=2))
+                    async_mode(timeout=2))
 
         got_meta = self.servant.notify.calls[0].args[2]
         assert_that(SmartObject.MetadataField.Timestamp not in got_meta)
