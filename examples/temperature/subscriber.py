@@ -19,9 +19,9 @@ class TemperatureSubscriber:
         broker = Broker(config)
 
         # - subscribe only to a specific publisher
-        source = "FFFF735700000002"
-        broker.subscribe_to_publisher(source, self.event_printer)
-        print("Subscribing to '" + source + "' publisher")
+        # source = "FFFF735700000002"
+        # broker.subscribe_to_publisher(source, self.event_printer)
+        # print("Subscribing to '" + source + "' publisher")
 
         # - subscribe to all publishers of a channel
         topic_name = "Temperature"

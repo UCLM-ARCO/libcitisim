@@ -4,3 +4,7 @@
 csharp/publish/
 .vscode
 .vagrant
+
+dist
+*.egg-info
+slice

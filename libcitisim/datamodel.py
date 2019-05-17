@@ -216,11 +216,13 @@ properties = {
 
 
 metadata = {
-    'timestamp':  TypeCast(int),
-    'quality':    TypeCast(int_range(0, 256)),
-    'expiration': TypeCast(int_range(0, 2**15 - 1), desc='validity for the sent value (in seconds)'),
-    'latitude':   TypeCast(float),
-    'longitude':  TypeCast(float),
-    'altitude':   TypeCast(float),
-    'place':      TypeCast(desc='Standard placeID'),
+    'timestamp':     TypeCast(int),
+    'quality':       TypeCast(int_range(0, 256)),
+    'expiration':    TypeCast(int_range(0, 2**15 - 1), desc='validity for the sent value (in seconds)'),
+    'latitude':      TypeCast(float),
+    'longitude':     TypeCast(float),
+    'altitude':      TypeCast(float),
+    'place':         TypeCast(desc='Standard placeID'),
+    'category':      TypeCast(desc='Tags or categories'),
+    'citizenemail':  TypeCast(desc='Citizen Report user identifier'),
 }

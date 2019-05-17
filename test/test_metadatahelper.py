@@ -60,6 +60,16 @@ class MetadataHelperTests(TestCase):
         meta[100] = 1
         MetadataHelper.from_metadata(meta)
 
+    def test_category_check(self):
+        value = "cat1,cat2"
+        sut = MetadataHelper(category=value).to_dict()
+        self.assertEquals(sut.get(MetadataField.Category), value)
+
+    def test_citizenemail_check(self):
+        value = "pedro@sample.com"
+        sut = MetadataHelper(citizenemail=value).to_dict()
+        self.assertEquals(sut.get(MetadataField.CitizenEmail), value)
+
 
 class EventSinkI(SmartObject.EventSink):
     def __init__(self, servant):

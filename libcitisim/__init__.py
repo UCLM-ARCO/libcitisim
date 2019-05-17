@@ -56,13 +56,15 @@ default_config = {
 
 class MetadataHelper:
     name_to_field = {
-        'timestamp':  MetadataField.Timestamp,
-        'quality':    MetadataField.Quality,
-        'expiration': MetadataField.Expiration,
-        'latitude':   MetadataField.Latitude,
-        'longitude':  MetadataField.Longitude,
-        'altitude':   MetadataField.Altitude,
-        'place':      MetadataField.Place,
+        'timestamp':     MetadataField.Timestamp,
+        'quality':       MetadataField.Quality,
+        'expiration':    MetadataField.Expiration,
+        'latitude':      MetadataField.Latitude,
+        'longitude':     MetadataField.Longitude,
+        'altitude':      MetadataField.Altitude,
+        'place':         MetadataField.Place,
+        'category':      MetadataField.Category,
+        'citizenemail':  MetadataField.CitizenEmail,
     }
 
     def __init__(self, **kargs):
