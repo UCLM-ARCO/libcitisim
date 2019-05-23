@@ -10,6 +10,7 @@ DOCDIR   = $(DESTDIR)/usr/share/doc
 CITISIM_DIR      ?= ../prj.citisim
 WIRING_SRV_DIR   ?= ../citisim-wiring-server/
 PROPERTY_SRV_DIR ?= ../ice.property-service-simple/
+ENERGY_MODEL_DIR ?= ../citisim-energymodel/
 
 all:
 	python3 setup.py bdist
@@ -21,6 +22,7 @@ source:
 	cp $(CITISIM_DIR)/slice/*.ice slice/citisim
 	cp $(WIRING_SRV_DIR)/src/*.ice slice/citisim
 	cp $(PROPERTY_SRV_DIR)/src/*.ice slice/PropertyService
+	cp $(ENERGY_MODEL_DIR)/energy.ice slice/citisim
 	python3 setup.py sdist
 
 tests:

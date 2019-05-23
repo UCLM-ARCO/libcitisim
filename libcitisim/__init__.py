@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: python -*-
 
-import os
 import sys
 import logging
 import Ice
@@ -12,7 +11,6 @@ from time import time
 from . import datamodel
 from .util import memoizedproperty
 
-PWD = os.path.dirname(__file__)
 if sys.platform == "win32":
     SLICE_DIR = Ice.getSliceDir()
 else:
@@ -23,6 +21,7 @@ Ice.loadSlice('{}/citisim/PersonTracker.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('-I{0} {0}/citisim/wiring.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/PropertyService/PropertyService.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{0}/citisim/citizen.ice -I{0} --all'.format(SLICE_DIR))
+Ice.loadSlice('{}/citisim/energy.ice'.format(SLICE_DIR))
 
 import PropertyService as PS
 import SmartObject  # noqa
@@ -33,6 +32,7 @@ from SmartObject import MetadataField  # noqa
 import SmartEnvironment  # noqa
 import KinectData  # noqa
 from Citisim import Citizen  # noqa
+from citisim.energy import EnergyForecastPrx
 
 logger = logging.getLogger('libcitisim')
 logger.setLevel(logging.ERROR)
@@ -45,12 +45,14 @@ WELCOME_SERVER_PROXY = "WelcomeServer.Proxy"
 TOPICMANAGER_PROXY = 'TopicManager.Proxy'
 PROPERTY_SERVER_PROXY = 'PropertyServer.Proxy'
 WIRING_SERVER_PROXY = 'WiringServer.Proxy'
+ENERGY_MODEL_SERVER_PROXY = "EnergyModelServer.Proxy"
 
 default_config = {
-    TOPICMANAGER_PROXY:    'IceStorm/TopicManager',
-    PROPERTY_SERVER_PROXY: 'PropertyServer',
-    WELCOME_SERVER_PROXY:  'WelcomeServer',
-    WIRING_SERVER_PROXY:   'WiringServer'
+    TOPICMANAGER_PROXY:        'IceStorm/TopicManager',
+    PROPERTY_SERVER_PROXY:     'PropertyServer',
+    WELCOME_SERVER_PROXY:      'WelcomeServer',
+    WIRING_SERVER_PROXY:       'WiringServer',
+    ENERGY_MODEL_SERVER_PROXY: 'EnergyModel',
 }
 
 
@@ -326,6 +328,16 @@ class Broker:
                     WIRING_SERVER_PROXY))
 
         return SmartServices.WiringServicePrx.checkedCast(proxy)
+
+    @memoizedproperty
+    def energy_model(self):
+        proxy = self._ic.propertyToProxy(ENERGY_MODEL_SERVER_PROXY)
+        if proxy is None:
+            raise RuntimeError(
+                "You must provide the '{}' configuration property.".format(
+                    ENERGY_MODEL_SERVER_PROXY))
+
+        return EnergyForecastPrx.checkedCast(proxy)
 
     def hello(self, address, transducer_type):
         if self.is_bidir:

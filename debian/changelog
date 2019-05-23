@@ -1,3 +1,9 @@
+libcitisim (1.20190523-1) unstable; urgency=low
+
+  * New release, add support for EnergyModel
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 23 May 2019 11:13:48 +0200
+
 libcitisim (1.20190517-1) unstable; urgency=low
 
   * New release, add Category and CitizenEmail to Metadata
