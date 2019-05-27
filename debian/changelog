@@ -1,3 +1,9 @@
+libcitisim (1.20190527-1) unstable; urgency=low
+
+  * New release, added more transducer types
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 27 May 2019 18:29:39 +0200
+
 libcitisim (1.20190523-1) unstable; urgency=low
 
   * New release, add support for EnergyModel

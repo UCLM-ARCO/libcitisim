@@ -150,6 +150,9 @@ transducer_types = {
     'RadiationSensor': SmartObject.AnalogSink,
     'MotorActuator': SmartObject.AnalogSink,
     'DimmableLightActuator': SmartObject.AnalogSink,
+    'Accelerometer': SmartObject.AnalogSink,
+    'PositionSensor': SmartObject.AnalogSink,
+    'AngleSensor': SmartObject.AnalogSink,
 
     'TwilightSensor': SmartObject.DigitalSink,
     'DoorSensor': SmartObject.DigitalSink,
