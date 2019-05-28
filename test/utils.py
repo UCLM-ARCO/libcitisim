@@ -1,13 +1,11 @@
 # # -*- coding: utf-8; mode: python -*-
 
 import os
-import shutil
 import Ice
 import IceStorm
 import libcitisim
-from subprocess import Popen, PIPE
-from select import select
 from libcitisim import MetadataHelper, SmartObject
+from libcitisim.util import EventsMixin as UtilEventMixin
 
 Ice.loadSlice("/usr/share/slice/PropertyService/PropertyService.ice")
 Ice.loadSlice("{0}/citisim/citizen.ice --all -I{0}".format("/usr/share/slice"))
@@ -15,111 +13,18 @@ import PropertyService as PS
 from Citisim import Citizen
 
 
-class EventsMixin:
-    @classmethod
-    def setUpClass(cls):
-        print("- setting up class...")
-        cls.pwd = os.path.dirname(__file__)
-        cls.config = os.path.join(cls.pwd, "tests.config")
-
-        cls.run_icestorm_server()
-        cls.run_property_server()
-        cls.run_welcome_server()
-
-    @classmethod
-    def run_icestorm_server(cls):
-        db_path = "/tmp/test-libcitisim-is-db"
-        if os.path.exists(db_path):
-            shutil.rmtree(db_path)
-        os.makedirs(db_path)
-
-        config = os.path.join(cls.pwd, "is.config")
-        cmd = "icebox --Ice.Config=" + config
-        cls.is_server = Popen(cmd.split(), cwd=cls.pwd, stdout=PIPE)
-
-        print("- waiting for IS to launch...")
-        pipe = select([cls.is_server.stdout], [], [], 3)[0]
-        assert len(pipe), "IceStorm service did not launch correctly"
-        assert pipe[0].readline() == b"IceStorm is ready\n"
-        print("- IceStorm server OK")
-
-    @classmethod
-    def run_property_server(cls):
-        config = os.path.join(cls.pwd, "ps.config")
-        cmd = "property-server --Ice.Config=" + config
-
-        if os.path.exists("/tmp/ps.json"):
-            os.unlink("/tmp/ps.json")
-
-        cls.ps_server = Popen(cmd.split(), cwd=cls.pwd, stdout=PIPE)
-        print("- waiting for PropertyServer to launch...")
-        while True:
-            pipe = select([cls.ps_server.stdout], [], [], 3)[0]
-            out = pipe[0].readline()
-            assert len(pipe), "PropertyService did not launch correctly"
-            if out.startswith(b"PropertyServer -t -e 1.1:tcp"):
-                break
-        print("- Property server OK")
-
-    @classmethod
-    def run_welcome_server(cls):
-        config = os.path.join(cls.pwd, "welcome.config")
-        cmd = "citisim-welcome --Ice.Config=" + config
-
-        cls.welcome_server = Popen(
-            cmd.split(), cwd=cls.pwd, stdout=PIPE, stderr=PIPE)
-        print("- waiting for WelcomeServer to launch...")
-        pipe = select([cls.welcome_server.stderr], [], [], 3)[0]
-        assert len(pipe), "WelcomeService service did not launch correctly"
-        out = pipe[0].readline()
-        assert out == b"INFO:Welcome service started\n", out
-        print("- Welcome server OK")
-
-    @classmethod
-    def tearDownClass(cls):
-        if hasattr(cls, "is_server"):
-            cls.is_server.terminate()
-            cls.is_server.kill()
-
-        if hasattr(cls, "welcome_server"):
-            cls.welcome_server.terminate()
-            cls.welcome_server.kill()
-
-        if hasattr(cls, "ps_server"):
-            cls.ps_server.terminate()
-            cls.ps_server.kill()
+class EventsMixin(UtilEventMixin):
+    pwd = os.path.dirname(__file__)
+    config = os.path.join(pwd, "tests.config")
 
     def setUp(self):
-        print("- setting up instance...")
-        # for testing purposes only
-        args = ["", "--Ice.Config=" + self.config]
-        self.ic = Ice.initialize(args)
-        self.adapter = self.ic.createObjectAdapterWithEndpoints(
-            'adapter', 'tcp -h 127.0.0.1')
-        self.adapter.activate()
-
-        # the real subject under testing
+        self._ice_setup()
         self.broker = libcitisim.Broker(self.config)
         print("- instance setup OK")
 
     def tearDown(self):
-        self.ic.destroy()
+        self._ice_finish()
         self.broker.property_manager.clear()
-
-    def _get_topic(self, name):
-        manager = self.ic.propertyToProxy("TopicManager.Proxy")
-        manager = IceStorm.TopicManagerPrx.checkedCast(manager)
-        try:
-            return manager.retrieve(name)
-        except IceStorm.NoSuchTopic:
-            return manager.create(name)
-
-    def _subscribe(self, topic_name, proxy):
-        topic = self._get_topic(topic_name)
-        print(topic.subscribeAndGetPublisher({}, proxy))
-
-    def _adapter_add(self, servant):
-        return self.adapter.addWithUUID(servant)
 
 
 class AnalogEventsMixin(EventsMixin):

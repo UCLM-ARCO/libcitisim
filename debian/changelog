@@ -1,3 +1,9 @@
+libcitisim (1.20190528-1) unstable; urgency=low
+
+  * New release, add EventsMixin for testing inside utils
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 28 May 2019 11:02:28 +0200
+
 libcitisim (1.20190527-1) unstable; urgency=low
 
   * New release, added more transducer types
