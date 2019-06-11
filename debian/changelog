@@ -1,3 +1,9 @@
+libcitisim (1.20190611-1) unstable; urgency=low
+
+  * New release, update slices
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 11 Jun 2019 11:03:59 +0200
+
 libcitisim (1.20190528-1) unstable; urgency=low
 
   * New release, add EventsMixin for testing inside utils
