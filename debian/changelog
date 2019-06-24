@@ -1,3 +1,9 @@
+libcitisim (1.20190624-1) unstable; urgency=low
+
+  * New release, add dependency on citisim-energymodel-slice 
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 24 Jun 2019 10:28:31 +0200
+
 libcitisim (1.20190611-1) unstable; urgency=low
 
   * New release, update slices

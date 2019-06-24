@@ -22,6 +22,7 @@ Ice.loadSlice('-I{0} {0}/citisim/wiring.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/PropertyService/PropertyService.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{0}/citisim/citizen.ice -I{0} --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citisim/energy.ice'.format(SLICE_DIR))
+Ice.loadSlice('{}/citisim/infosystem.ice'.format(SLICE_DIR))
 
 import PropertyService as PS
 import SmartObject  # noqa
@@ -33,6 +34,7 @@ import SmartEnvironment  # noqa
 import KinectData  # noqa
 from Citisim import Citizen  # noqa
 from citisim.energy import EnergyForecastPrx
+from citisim import infosystem
 
 logger = logging.getLogger('libcitisim')
 logger.setLevel(logging.ERROR)
