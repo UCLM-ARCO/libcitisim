@@ -373,6 +373,8 @@ class Broker:
         return self._subscribe_proxy(topic_name, proxy)
 
     def _subscribe_proxy(self, topic_name, proxy):
+        logger.debug("subscribing proxy {}".format(proxy))
+        logger.debug("  to topic {}".format(topic_name))
         topic = self.get_topic(topic_name)
 
         # support for bidir connections
