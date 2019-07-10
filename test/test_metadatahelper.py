@@ -71,7 +71,7 @@ class MetadataHelperTests(TestCase):
         self.assertEquals(sut.get(MetadataField.CitizenEmail), value)
 
 
-class EventSinkI(SmartObject.EventSink):
+class PulseSinkI(SmartObject.PulseSink):
     def __init__(self, servant):
         self.servant = servant
 
@@ -90,19 +90,19 @@ class MetadataHelperMarshallTests(TestCase):
         self.broker.destroy()
 
     def adapter_add(self, cast, servant):
-        proxy = self.adapter.addWithUUID(EventSinkI(servant))
+        proxy = self.adapter.addWithUUID(PulseSinkI(servant))
         return cast.uncheckedCast(proxy)
 
     def test_empty(self):
         servant = Mimic(Spy, SmartObject.EventSink)
-        sink = self.adapter_add(SmartObject.EventSinkPrx, servant)
+        sink = self.adapter_add(SmartObject.PulseSinkPrx, servant)
 
         meta = MetadataHelper()
         sink.notify('', meta.to_dict())
 
     def test_timestamp(self):
         servant = Mimic(Spy, SmartObject.EventSink)
-        sink = self.adapter_add(SmartObject.EventSinkPrx, servant)
+        sink = self.adapter_add(SmartObject.PulseSinkPrx, servant)
 
         meta = MetadataHelper(timestamp=10).to_dict()
         sink.notify('', meta)

@@ -1,6 +1,12 @@
+libcitisim (1.20190710-1) unstable; urgency=low
+
+  * New release, add support for publishing using RouteSink
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 10 Jul 2019 13:47:34 +0200
+
 libcitisim (1.20190624-1) unstable; urgency=low
 
-  * New release, add dependency on citisim-energymodel-slice 
+  * New release, add dependency on citisim-energymodel-slice
 
  -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 24 Jun 2019 10:28:31 +0200
 

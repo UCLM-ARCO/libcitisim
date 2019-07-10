@@ -15,8 +15,10 @@ if not os.path.exists(SLICE_DIR):
 
 Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citizen.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
+Ice.loadSlice('{}/services.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 
 import SmartObject
+import SmartServices
 from Citisim import Citizen
 
 
@@ -159,6 +161,8 @@ transducer_types = {
     'RelayActuator': SmartObject.DigitalSink,
 
     'CitizenReporter': Citizen.ReportSink,
+
+    'RouteService': SmartServices.RoutingSink,
 }
 
 

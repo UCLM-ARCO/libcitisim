@@ -188,6 +188,7 @@ class ObservablePublisher(SmartObject.Observable, ObservableMixin):
         SmartObject.AnalogSink: SmartObject.AnalogSinkPrx,
         SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
         Citizen.ReportSink: Citizen.ReportSinkPrx,
+        SmartServices.RoutingSink: SmartServices.RoutingSinkPrx,
     }
 
     def __init__(self, broker, source, transducer_type, meta):
