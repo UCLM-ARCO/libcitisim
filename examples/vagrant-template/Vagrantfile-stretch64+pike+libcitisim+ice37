@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "debian/contrib-buster64"
+
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  # config.vm.network "private_network", ip: "192.168.33.10"
+  # config.vm.network "public_network"
+
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "Installing pike repository..."
+    echo "deb http://pike.esi.uclm.es/arco sid main" > /etc/apt/sources.list.d/pike.list
+    wget -q -O- http://pike.esi.uclm.es/arco/key.asc | apt-key add -
+
+    echo "Installing Ice 3.7 and libcitisim..."
+    export DEBIAN_FRONTEND=noninteractive
+    apt update
+    apt install -q -y python3-zeroc-ice \
+                      libcitisim
+  SHELL
+end
