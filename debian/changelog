@@ -1,3 +1,9 @@
+libcitisim (1.20190711-1) unstable; urgency=low
+
+  * New release, some bugfixes
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 11 Jul 2019 07:43:42 +0200
+
 libcitisim (1.20190710-1) unstable; urgency=low
 
   * New release, add support for publishing using RouteSink

@@ -231,11 +231,17 @@ class ObservablePublisher(SmartObject.Observable, ObservableMixin):
             meta.pop("timestamp")
 
         meta = MetadataHelper(**meta).to_dict()
-        self.observer.notify(value, self.source, meta)
-        logger.debug(
-            "publish event to '{}', value: {}, source: {}, meta: {}"
-            .format(self.observer, value, self.source, meta)
-        )
+        if self.observer_cast == SmartServices.RoutingSinkPrx:
+            self.observer.notify(value)
+            logger.debug(
+                "publish event to '{}', value: {}".format(self.observer, value)
+            )
+        else:
+            self.observer.notify(value, self.source, meta)
+            logger.debug(
+                "publish event to '{}', value: {}, source: {}, meta: {}"
+                .format(self.observer, value, self.source, meta)
+            )
 
     def subscribe(self, observer):
         prop_key = self.source + " | private-channel"
