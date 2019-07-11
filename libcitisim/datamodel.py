@@ -212,12 +212,15 @@ properties = {
     # 'place':              TypeCast(desc='place textual identifier'),  # to location service
 
     # NEW
+    'proxy':              TypeCast(desc='transducer object stringfied proxy'),
     'interface':          TypeCast(desc='citisim SmartObject interface'),
     'asset':              TypeCast(desc='icon or shape name (e: bulb)'),
     'magnitude':          TypeCast(valid_enum(MAGNITUDES), desc='physical magnitude'),
     'model':              TypeCast(desc='device model'),
     'delta':              TypeCast(int,  desc='number of seconds between updates'),
     'common-channel':     TypeCast(desc='common public topic name where event will be sent'),
+
+    # FIXME: not needed due to Welcome, nobody need to invoke tranducer.setObserver anymore.
     'observable':         TypeCast(bool, desc='True if a publisher implements SmartObject::Observable'),
     'derive-from':        TypeCast(desc='Physical sensor identity for a virtual sensor'),
 
