@@ -1,5 +1,6 @@
 # -*- mode: makefile-gmake; coding: utf-8 -*-
 
+DOTNETURL  = https://dotnet.microsoft.com/download/linux-package-manager/debian9/sdk-current
 VER       ?= $(shell date +%Y.%m%d)
 SLICE2CS  ?= slice2cs
 SLICE_DIR  = /usr/share/slice
@@ -25,9 +26,16 @@ $(OUT_DIR):
 test:
 	dotnet test
 
+test-this: F ?= ""
+test-this:
+	dotnet test --filter "$(F)"
+
 package:
 	dotnet publish -o $$(pwd)/LibCitisim src
 	zip -r libcitisim-cs-$(VER).zip LibCitisim/*.dll -x LibCitisim/Microsoft.CSharp.dll
+
+install-deps:
+	@echo "Please, visit $(DOTNETURL) for more information about installing .NET SDK"
 
 .PHONY: clean vclean
 clean:

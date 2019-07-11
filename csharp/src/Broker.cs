@@ -13,13 +13,13 @@ using StringDict = System.Collections.Generic.Dictionary<string, string>;
 namespace LibCitisim {
 
     internal class Constants {
-        internal static readonly string PROP_WIRING_SERVER_PROXY =
-            "Welcome.Proxy";
+        internal static readonly string PROP_WELCOME_SERVER_PROXY =
+            "WelcomeServer.Proxy";
         internal static readonly string PROP_TOPIC_MANAGER_PROXY =
             "TopicManager.Proxy";
         internal static readonly string PROP_PROPERTY_SERVER_PROXY =
-            "PropertyService.Proxy";
-        internal static readonly string PROP_WELCOME_SERVER_PROXY =
+            "PropertyServer.Proxy";
+        internal static readonly string PROP_WIRING_SERVER_PROXY =
             "WiringServer.Proxy";
 
         internal static readonly Dictionary<string, string> defaultConfig =
@@ -50,12 +50,14 @@ namespace LibCitisim {
         }
 
         public static Logger GetLogger(string name) {
-            Logger retval;
-            if (!instances.TryGetValue(name, out retval)) {
-                retval = new Logger(name);
-                instances[name] = retval;
+            lock (instances) {
+                Logger retval;
+                if (!instances.TryGetValue(name, out retval)) {
+                    retval = new Logger(name);
+                    instances[name] = retval;
+                }
+                return retval;
             }
-            return retval;
         }
 
         public void Debug(string message) {
@@ -189,42 +191,58 @@ namespace LibCitisim {
         }
     }
 
-    public class ADPublisher {
+    public class ObservablePublisher : SmartObject.ObservableDisp_ {
         private Logger logger = Logger.GetLogger("libcitisim");
 
+        internal static Dictionary<Type, ProxyCasting> ProxyTypes =
+            new Dictionary<Type, ProxyCasting> {
+                {typeof(SmartObject.AnalogSink), (prx) => {
+                    return SmartObject.AnalogSinkPrxHelper.uncheckedCast(prx);
+                }},
+                {typeof(SmartObject.DigitalSink), (prx) => {
+                    return SmartObject.DigitalSinkPrxHelper.uncheckedCast(prx);
+                }},
+            };
+
         private Broker broker;
-        private string topicName;
         private string source;
         private StringDict meta;
         private Type type;
-        private dynamic publisher;
+        private dynamic observer;
+        ProxyCasting observerCast;
 
-        public ADPublisher(Broker broker, string topicName, string source="", StringDict meta=null) {
-            if (string.IsNullOrEmpty(source))
-                source = Guid.NewGuid().ToString("N").Substring(0, 8);
+        public ObservablePublisher(
+                Broker broker, string source, string transducerType, StringDict meta=null) {
+
             if (meta == null)
                 meta = new StringDict();
 
             this.broker = broker;
-            this.topicName = topicName;
             this.source = source;
             this.meta = meta;
 
-            if (!DataModel.TopicTypes.TryGetValue(topicName, out type))
-                throw new ArgumentException($"Unknown topic name: '{topicName}'");
+            if (!DataModel.TransducerTypes.TryGetValue(transducerType, out type))
+                throw new ArgumentException($"Unknown transducer type: {transducerType}");
+            observerCast = ProxyTypes[type];
+            Console.WriteLine(type);
         }
 
-        public void Publish(dynamic value, string source=null, StringDict meta=null) {
-            if (publisher is null)
-                RetrievePublisher();
-            if (source is null)
-                source = this.source;
+        public override void setObserver(string observer, Ice.Current current) {
+            Ice.Communicator ic = current.adapter.getCommunicator();
+            dynamic proxy = ic.stringToProxy(observer);
+            this.observer = observerCast(proxy);
+            logger.Info($"new observer {observer} for {current.id.name}");
+        }
+
+        public void Publish(dynamic value, StringDict meta=null) {
+            if (observer == null)
+                throw new InvalidOperationException("Publisher not yet configured!");
             if (meta is null)
                 meta = this.meta;
 
-            // double is not supported, cast to float
-            if (value.GetType() == typeof(double))
-                value = (float)value;
+           // double is not supported, cast to float
+           if (value.GetType() == typeof(double))
+               value = (float)value;
 
             // if there is "timestamp" but explicitly set to None, then
             // remove ts from meta, otherwise (there is no "timestamp" key
@@ -235,22 +253,27 @@ namespace LibCitisim {
                 meta.Remove("timestamp");
 
             var meta_ = MetadataUtil.FromDict(meta);
-            publisher.notify(value, source, meta_);
+            observer.notify(value, source, meta_);
 
-            string strmeta = "{";
-            foreach (var i in meta_)
-                strmeta += $"{i.Key}: '{i.Value}',";
-            strmeta += "}";
-            logger.Debug(
-                $"publish event on '{topicName}', value: {value}, source: {source}, meta: {strmeta}"
-            );
+            {
+                string strmeta = "{";
+                foreach (var i in meta_)
+                    strmeta += $"{i.Key}: '{i.Value}',";
+                strmeta += "}";
+                logger.Debug(
+                    $"publish event to '{observer}', value: {value}, " +
+                    $"source: {source}, meta: {strmeta}"
+                );
+            }
         }
 
-        private void RetrievePublisher() {
-            var topic = broker.GetTopic(topicName);
-            var publisher = topic.getPublisher();
-            ProxyCasting cast = Broker.ProxyTypes[type];
-            this.publisher = cast(publisher);
+        public void Subscribe(Ice.ObjectPrx observer) {
+            var propKey = source + " | private-channel";
+            var channelName = JsonConvert.DeserializeObject<string>(
+                broker.GetProperty(propKey));
+            var topic = broker.GetTopic(channelName);
+            topic.subscribeAndGetPublisher(null, observer);
+            logger.Debug($"subscribe observer to topic '{channelName}'");
         }
     }
 
@@ -258,9 +281,11 @@ namespace LibCitisim {
 
     public sealed class Broker : IDisposable {
 
+        // these are the cached values of the properties
         private Ice.ObjectAdapter _adapter;
         private IceStorm.TopicManagerPrx _topicManager;
         private PropertyServerPrx _propertyManager;
+        private WelcomeServicePrx _welcomeServer;
 
         private Ice.Communicator ic;
         private Ice.Properties props;
@@ -271,16 +296,6 @@ namespace LibCitisim {
             new Dictionary<Type, Type> {
                 {typeof(SmartObject.AnalogSink), typeof(AnalogSinkI)},
                 {typeof(SmartObject.DigitalSink), typeof(DigitalSinkI)}
-            };
-
-        internal static Dictionary<Type, ProxyCasting> ProxyTypes =
-            new Dictionary<Type, ProxyCasting> {
-                {typeof(SmartObject.AnalogSink), (prx) => {
-                    return SmartObject.AnalogSinkPrxHelper.uncheckedCast(prx);
-                }},
-                {typeof(SmartObject.DigitalSink), (prx) => {
-                    return SmartObject.DigitalSinkPrxHelper.uncheckedCast(prx);
-                }},
             };
 
         private static Broker instance;
@@ -336,7 +351,8 @@ namespace LibCitisim {
         public void Dispose() {
             if (_adapter != null)
                 _adapter.deactivate();
-            ic.destroy();
+            if (ic != null)
+                ic.destroy();
             logger.Debug("broker correctly disposed");
         }
 
@@ -365,8 +381,8 @@ namespace LibCitisim {
                 if (isBidir)
                     logger.Info("using bi-dir connections");
                 else {
-                    adapterName = "Adapter";
-                    string endpoints = GetIceProperty("Adapter.Endpoints");
+                    adapterName = "LibCitisimAdapter";
+                    string endpoints = GetIceProperty($"{adapterName}.Endpoints");
                     logger.Info($"creating adapter with endpoints: '{endpoints}'");
                 }
 
@@ -378,14 +394,65 @@ namespace LibCitisim {
 
         // FIXME: adapter_add() goes here
 
-        // FIXME: welcome_server property goes here
+        public WelcomeServicePrx WelcomeServer {
+            get {
+                if (_welcomeServer != null)
+                    return _welcomeServer;
+
+                dynamic proxy = GetIceProperty(Constants.PROP_WELCOME_SERVER_PROXY);
+                proxy = ic.stringToProxy(proxy);
+                _welcomeServer = WelcomeServicePrxHelper.checkedCast(proxy);
+                return _welcomeServer;
+            }
+        }
 
         // FIXME: wiring_server property goes here
 
-        // FIXME: hello() goes here
+        public void hello(string address, string transducerType) {
+            if (isBidir) {
+                logger.Debug("calling helloBidir() on WelcomeServer");
+                WelcomeServer.ice_getConnection().setAdapter(adapter);
+                WelcomeServer.helloBidir(address, transducerType);
+            }
+            else {
+                logger.Debug("calling hello() on WelcomeServer");
+                WelcomeServer.hello(address, transducerType);
+            }
+        }
 
         public void Subscribe(string topicName, ADSubscriber callback) {
             Ice.ObjectPrx proxy = GetServantProxy(topicName, callback);
+            SubscribeProxy(topicName, proxy);
+        }
+
+        public void SubscribeToPublisher(string source, ADSubscriber callback) {
+            try {
+                var privateChannelKey = source + " | private-channel";
+                string topicName = JsonConvert.DeserializeObject<string>(
+                    GetProperty(privateChannelKey));
+
+                var typeKey = source + " | transducer-type";
+                string transducerType = JsonConvert.DeserializeObject<string>(
+                    GetProperty(typeKey));
+
+                Type type;
+                if (!DataModel.TransducerTypes.TryGetValue(transducerType, out type)) {
+                    throw new ArgumentException($"unknown transducer type: '{transducerType}'");
+                }
+
+                Ice.Object servant = (Ice.Object)Activator.CreateInstance(
+                    ServantTypes[type], topicName, callback);
+                var proxy = adapter.addWithUUID(servant);
+
+                SubscribeProxy(topicName, proxy);
+            }
+            catch (System.Exception e) {
+                throw new ArgumentException(
+                    $"Unknown or invalid publisher: {source}, error: {e}");
+            }
+        }
+
+        private void SubscribeProxy(string topicName, Ice.ObjectPrx proxy) {
             IceStorm.TopicPrx topic = GetTopic(topicName);
 
             if (isBidir)
@@ -394,13 +461,14 @@ namespace LibCitisim {
             logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
         }
 
-        public void Publish(string topicName, dynamic value, string source="", StringDict meta=null) {
-            var p = new ADPublisher(this, topicName, source, meta);
-            p.Publish(value);
-        }
+        public ObservablePublisher GetPublisher(
+                string source, string transducerType, StringDict meta=null) {
 
-        public ADPublisher GetPublisher(string topicName, string source="", StringDict meta=null) {
-            return new ADPublisher(this, topicName, source, meta);
+            logger.Debug($"retrieving publisher for '{source}'...");
+            var pub = new ObservablePublisher(this, source, transducerType, meta);
+            var pub_prx = adapter.add(pub, Ice.Util.stringToIdentity(source));
+            hello(pub_prx.ToString(), transducerType);
+            return pub;
         }
 
         public void WaitForEvents() {
@@ -420,21 +488,19 @@ namespace LibCitisim {
             Ice.Object servant = (Ice.Object)Activator.CreateInstance(
                 ServantTypes[type], topicName, callback);
             var proxy = adapter.addWithUUID(servant);
-            if (proxy.ice_isTwoway())
-                proxy = proxy.ice_oneway();
             return proxy;
         }
 
         internal TopicPrx GetTopic(string topicName) {
             try {
-                return topicManager.retrieve(topicName);
+                return TopicManager.retrieve(topicName);
             }
             catch (IceStorm.NoSuchTopic) {
-                return topicManager.create(topicName);
+                return TopicManager.create(topicName);
             }
         }
 
-        public TopicManagerPrx topicManager {
+        public TopicManagerPrx TopicManager {
             get {
                 if (_topicManager != null)
                     return _topicManager;
@@ -448,14 +514,15 @@ namespace LibCitisim {
 
         public void SetProperty(string path, dynamic value) {
             value = JsonConvert.SerializeObject(value);
-            propertyManager.set(path, value);
+            PropertyManager.set(path, value);
         }
 
+        // Note: do not deserialize here, or provide a method to retrieve a list, a dict...
         public string GetProperty(string path) {
-            return propertyManager.get(path);
+            return PropertyManager.get(path);
         }
 
-        internal PropertyServerPrx propertyManager {
+        public PropertyServerPrx PropertyManager {
             get {
                 if (_propertyManager != null)
                     return _propertyManager;

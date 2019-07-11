@@ -1,3 +1,93 @@
+libcitisim (1.20190711.2-1) unstable; urgency=low
+
+  * New release, datamodel sync
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 11 Jul 2019 13:25:06 +0200
+
+libcitisim (1.20190711.1-1) unstable; urgency=low
+
+  * New release, add support for RoutingSink subscriber
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 11 Jul 2019 11:37:56 +0200
+
+libcitisim (1.20190711-1) unstable; urgency=low
+
+  * New release, some bugfixes
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 11 Jul 2019 07:43:42 +0200
+
+libcitisim (1.20190710-1) unstable; urgency=low
+
+  * New release, add support for publishing using RouteSink
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 10 Jul 2019 13:47:34 +0200
+
+libcitisim (1.20190624-1) unstable; urgency=low
+
+  * New release, add dependency on citisim-energymodel-slice
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 24 Jun 2019 10:28:31 +0200
+
+libcitisim (1.20190611-1) unstable; urgency=low
+
+  * New release, update slices
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 11 Jun 2019 11:03:59 +0200
+
+libcitisim (1.20190528-1) unstable; urgency=low
+
+  * New release, add EventsMixin for testing inside utils
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 28 May 2019 11:02:28 +0200
+
+libcitisim (1.20190527-1) unstable; urgency=low
+
+  * New release, added more transducer types
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 27 May 2019 18:29:39 +0200
+
+libcitisim (1.20190523-1) unstable; urgency=low
+
+  * New release, add support for EnergyModel
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 23 May 2019 11:13:48 +0200
+
+libcitisim (1.20190517-1) unstable; urgency=low
+
+  * New release, add Category and CitizenEmail to Metadata
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Fri, 17 May 2019 11:27:28 +0200
+
+libcitisim (1.20190409-1) unstable; urgency=low
+
+  * New release, update static field on datamodel
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 09 Apr 2019 14:58:47 +0200
+
+libcitisim (1.20190404-1) unstable; urgency=low
+
+  * New release, some minor fixes
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 04 Apr 2019 11:13:16 +0200
+
+libcitisim (1.20190403-1) unstable; urgency=low
+
+  * New release, update release major number
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 03 Apr 2019 11:08:05 +0200
+
+libcitisim (0.20190403-1) unstable; urgency=low
+
+  * New release, fix bidir support on publisher setup
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 03 Apr 2019 08:58:32 +0200
+
+libcitisim (0.20190402-1) unstable; urgency=low
+
+  * New release, add support for subscribe_to_publisher()
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 02 Apr 2019 11:53:42 +0200
+
 libcitisim (0.20190111-1) unstable; urgency=low
 
   * New release

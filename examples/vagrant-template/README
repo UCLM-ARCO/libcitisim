@@ -1,0 +1,2 @@
+These are just templates. To use one, first RENAME it to Vagrantfile, and copy
+that file to a suitable directory, then run `vagrant up`.

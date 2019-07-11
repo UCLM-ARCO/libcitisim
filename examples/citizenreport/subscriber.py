@@ -16,11 +16,17 @@ class CitizenReportSubscriber:
         if len(args) > 1:
             config = args[1]
 
-        topic_name = "CitizenReport"
         broker = Broker(config)
 
-        print("Subscribing to '" + topic_name + "' topic")
+        # - subscribe only to a specific publisher
+        source = "FFFF735700000001"
+        broker.subscribe_to_publisher(source, self.report_printer)
+        print("Subscribing to '" + source + "' publisher")
+
+        # - subscribe to all publishers of a channel
+        topic_name = "CitizenReport"
         broker.subscribe(topic_name, self.report_printer)
+        print("Subscribing to '" + topic_name + "' topic")
 
         print("Awaiting data...")
         broker.wait_for_events()

@@ -4,9 +4,10 @@ using System.Text;
 using System.Threading;
 using Xunit;
 
-namespace LibCitisim {
+namespace LibCitisim
+{
 
-    class PSService : IDisposable {
+    public class PSService : IDisposable {
         private static PSService instance = null;
         private static readonly object safe = new object();
 
@@ -36,7 +37,7 @@ namespace LibCitisim {
             });
             psServer.ErrorDataReceived += new DataReceivedEventHandler((sender, e) => {
                 if (!String.IsNullOrEmpty(e.Data)) {
-                    Console.WriteLine("ERROR:" + e.Data);
+                    Console.WriteLine(e.Data);
                 }
             });
             Assert.True(psServer.Start());
@@ -45,7 +46,7 @@ namespace LibCitisim {
 
             ev.WaitOne(5000);
             if (psServer.HasExited) {
-                Console.WriteLine("ERROR:" + psServer.StandardError.ReadToEnd());
+                Console.WriteLine(psServer.StandardError.ReadToEnd());
             }
             string expected = "PropertyServer -t -e 1.1:tcp -h";
             Assert.Equal(expected, output.ToString().Substring(0, expected.Length));
@@ -75,24 +76,5 @@ namespace LibCitisim {
                 instance = new PSService();
             }
         }
-    }
-
-    // This class is for initializing the Property Server, given
-    // in the format of a Collection Fixture
-    public class PropertyServerFixture : IDisposable {
-        public PropertyServerFixture() {
-            Console.WriteLine("++++ launch PS service");
-            PSService.StartService();
-        }
-
-        public void Dispose() {
-            Console.WriteLine("---- stop PS service");
-            PSService.StopService();
-        }
-    }
-
-    [CollectionDefinition("PropertyServer Collection")]
-    public class PropertyServerCollection : ICollectionFixture<PropertyServerFixture> {
-
     }
 }

@@ -9,11 +9,12 @@ namespace LibCitisim {
 
         protected Ice.Communicator ic;
         protected Broker broker;
-        private string pwd = Environment.GetEnvironmentVariable("TEST_DIR");
-        private string config;
-        private Ice.ObjectAdapter adapter;
+        protected string pwd = Environment.GetEnvironmentVariable("TEST_DIR");
+        protected string config;
+        protected Ice.ObjectAdapter adapter;
 
         public EventsFixture() {
+            Console.WriteLine("Setting up for next test...");
             config = pwd + "/tests.config";
 
             // for testing purposes only
@@ -27,7 +28,33 @@ namespace LibCitisim {
             // the real subject under testing
             try {
                 broker = Broker.Initialize(config);
-            }catch(InvalidOperationException) {
+            }
+            catch(InvalidOperationException) {
+                broker = Broker.GetBroker();
+            }
+        }
+
+        protected void SetupBidirBroker() {
+            Dispose();
+            broker = null;
+            ic = null;
+            adapter = null;
+
+            Console.WriteLine("Setting up for a bidir test...");
+            config = pwd + "/tests-bidir.config";
+            // for testing purposes only
+            List<string> args = new List<string> () {"", "--Ice.Config=" + config};
+            string[] args_ = args.ToArray();
+            ic = Ice.Util.initialize(ref args_);
+
+            adapter = ic.createObjectAdapterWithEndpoints("adapter", "tcp -h 127.0.0.1 -p 9999");
+            adapter.activate();
+
+            // the real subject under testing
+            try {
+                broker = Broker.Initialize(config);
+            }
+            catch(InvalidOperationException) {
                 broker = Broker.GetBroker();
             }
         }
@@ -36,6 +63,7 @@ namespace LibCitisim {
             ic.shutdown();
             ic.destroy();
             adapter.deactivate();
+            Broker.ForgetInstance();
             Console.WriteLine(">>> disposed test");
         }
 

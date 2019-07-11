@@ -15,8 +15,10 @@ if not os.path.exists(SLICE_DIR):
 
 Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citizen.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
+Ice.loadSlice('{}/services.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 
 import SmartObject
+import SmartServices
 from Citisim import Citizen
 
 
@@ -123,25 +125,77 @@ topic_types = {
 
     "Unconfigured": SmartObject.AnalogSink,
 
+    "DoorState": SmartObject.DigitalSink,
     "Twilight": SmartObject.DigitalSink,
 
     "CitizenReport": Citizen.ReportSink,
+    "EvacuationRoute": SmartServices.RoutingSink,
+}
+
+
+transducer_types = {
+    'LightSensor': SmartObject.AnalogSink,
+    'TemperatureSensor': SmartObject.AnalogSink,
+    'HumiditySensor': SmartObject.AnalogSink,
+    'PressureSensor': SmartObject.AnalogSink,
+    'Anemometer': SmartObject.AnalogSink,
+    'Windvane': SmartObject.AnalogSink,
+    'Pluviometer': SmartObject.AnalogSink,
+    'VibrationSensor': SmartObject.AnalogSink,
+    'VoltageSensor': SmartObject.AnalogSink,
+    'CurrentSensor': SmartObject.AnalogSink,
+    'PowerSensor': SmartObject.AnalogSink,
+    'CapacitySensor': SmartObject.AnalogSink,
+    'EnergySensor': SmartObject.AnalogSink,
+    'ParticulateMatterSensor': SmartObject.AnalogSink,
+    'GasSensor': SmartObject.AnalogSink,
+    'VolumeSensor': SmartObject.AnalogSink,
+    'RadiationSensor': SmartObject.AnalogSink,
+    'MotorActuator': SmartObject.AnalogSink,
+    'DimmableLightActuator': SmartObject.AnalogSink,
+    'Accelerometer': SmartObject.AnalogSink,
+    'PositionSensor': SmartObject.AnalogSink,
+    'AngleSensor': SmartObject.AnalogSink,
+
+    'TwilightSensor': SmartObject.DigitalSink,
+    'DoorSensor': SmartObject.DigitalSink,
+    'RelayActuator': SmartObject.DigitalSink,
+
+    'CitizenReporter': Citizen.ReportSink,
+
+    'RouteService': SmartServices.RoutingSink,
+
+    'SmartScreen': SmartServices.MessageRender,
 }
 
 
 UNITS = [
-    'wats',
-    'celsius',
-    'kWh',
-    '%',
-    'ppm',
+    'watts',         # energy
+    'kWh',           # energy
+    'volts',         # voltage
+    'amperes',       # current
+    'volt-amperes',  # apparent power
+    'mAh',           # battery capacity
+    'celsius',       # temperature
+    'degrees',       # angle
+    '%',             # percentage
+    '%RH',           # relative humidity
+    'ppm',           # parts per million
+    'mm',            # distance, width, length...
+    'mm/hour',       # volume, speed
+    'mm/day',        # volume, speed
+    'km/h',          # speed
+    'bool',          # presence, ausence, binary properties
 ]
+
 
 MAGNITUDES = [
     'electrical-power',
     'temperature',
     'humidity',
+    'level',
 ]
+
 
 properties = {
     'units':              TypeCast(valid_enum(UNITS), desc='units of the readings'),
@@ -170,12 +224,15 @@ properties = {
     # 'wiring:observers':   TypeCast(list, desc='List of observers for an observable (managed by the wiring service')
 }
 
+
 metadata = {
-    'timestamp':  TypeCast(int),
-    'quality':    TypeCast(int_range(0, 256)),
-    'expiration': TypeCast(int_range(0, 2**15 - 1), desc='validity for the sent value (in seconds)'),
-    'latitude':   TypeCast(float),
-    'longitude':  TypeCast(float),
-    'altitude':   TypeCast(float),
-    'place':      TypeCast(desc='Standard placeID'),
+    'timestamp':     TypeCast(int),
+    'quality':       TypeCast(int_range(0, 256)),
+    'expiration':    TypeCast(int_range(0, 2**15 - 1), desc='validity for the sent value (in seconds)'),
+    'latitude':      TypeCast(float),
+    'longitude':     TypeCast(float),
+    'altitude':      TypeCast(float),
+    'place':         TypeCast(desc='Standard placeID'),
+    'category':      TypeCast(desc='Tags or categories'),
+    'citizenemail':  TypeCast(desc='Citizen Report user identifier'),
 }

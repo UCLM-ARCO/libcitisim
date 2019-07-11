@@ -38,8 +38,8 @@ class TypeCastTests(TestCase):
             self.assertEquals(4, sut.apply([1]))
 
     def test_unit(self):
-        result = datamodel.properties['units'].apply('wats')
-        self.assertEquals('wats', result)
+        result = datamodel.properties['units'].apply('watts')
+        self.assertEquals('watts', result)
 
     def test_unit_fail(self):
         with self.assertRaises(TypeError):

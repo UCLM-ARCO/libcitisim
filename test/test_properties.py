@@ -31,7 +31,7 @@ class PropertyServerTests(PropertyMixin, TestCase):
         path = '17510026 | units'
         value = 'Celsius'
         self._set_property(path, json.dumps(value))
-        obtained_value = json.loads(self.broker.get_property(path))
+        obtained_value = self.broker.get_property(path)
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_int(self):
@@ -47,7 +47,7 @@ class PropertyServerTests(PropertyMixin, TestCase):
         path = '17510026 | int'
         value = 6486
         self._set_property(path, json.dumps(value))
-        obtained_value = json.loads(self.broker.get_property(path))
+        obtained_value = self.broker.get_property(path)
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_float(self):
@@ -63,7 +63,7 @@ class PropertyServerTests(PropertyMixin, TestCase):
         path = '17510026 | float'
         value = 64.86
         self._set_property(path, json.dumps(value))
-        obtained_value = json.loads(self.broker.get_property(path))
+        obtained_value = self.broker.get_property(path)
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_tuple(self):
@@ -80,7 +80,7 @@ class PropertyServerTests(PropertyMixin, TestCase):
         value = (-50, 255)
         self._set_property(path, json.dumps(value))
         obtained_value = self.broker.get_property(path)
-        assert_that(json.dumps(value), equal_to(obtained_value))
+        assert_that(list(value), equal_to(obtained_value))
 
     def test_set_property_list(self):
         # set a list property
@@ -95,7 +95,7 @@ class PropertyServerTests(PropertyMixin, TestCase):
         path = '17510026 | list'
         value = [-50, 255]
         self._set_property(path, json.dumps(value))
-        obtained_value = json.loads(self.broker.get_property(path))
+        obtained_value = self.broker.get_property(path)
         assert_that(value, equal_to(obtained_value))
 
     def test_set_property_dict(self):
@@ -105,6 +105,7 @@ class PropertyServerTests(PropertyMixin, TestCase):
         self.broker.set_property(path, value)
         obtained_value = json.loads(self._get_property(path))
         assert_that(value, equal_to(obtained_value))
+
         # individual key values
         key1_value = json.loads(self._get_property('17510026 | dict | key1'))
         assert_that(value['key1'], equal_to(key1_value))
@@ -118,14 +119,15 @@ class PropertyServerTests(PropertyMixin, TestCase):
         path = '17510026 | dict'
         value = {'key1':'a', 'key2':2, 'key3':3.14}
         self._set_property(path, json.dumps(value))
-        obtained_value = json.loads(self.broker.get_property(path))
+        obtained_value = self.broker.get_property(path)
         assert_that(value, equal_to(obtained_value))
+
         # individual key values
-        key1_value = json.loads(self.broker.get_property('17510026 | dict | key1'))
+        key1_value = json.loads(self._get_property('17510026 | dict | key1'))
         assert_that(value['key1'], equal_to(key1_value))
-        key2_value = json.loads(self.broker.get_property('17510026 | dict | key2'))
+        key2_value = json.loads(self._get_property('17510026 | dict | key2'))
         assert_that(value['key2'], equal_to(key2_value))
-        key3_value = json.loads(self.broker.get_property('17510026 | dict | key3'))
+        key3_value = json.loads(self._get_property('17510026 | dict | key3'))
         assert_that(value['key3'], equal_to(key3_value))
 
     def test_set_not_serializable(self):

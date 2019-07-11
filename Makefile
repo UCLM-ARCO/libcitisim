@@ -10,6 +10,7 @@ DOCDIR   = $(DESTDIR)/usr/share/doc
 CITISIM_DIR      ?= ../prj.citisim
 WIRING_SRV_DIR   ?= ../citisim-wiring-server/
 PROPERTY_SRV_DIR ?= ../ice.property-service-simple/
+ENERGY_MODEL_DIR ?= ../citisim-energymodel/
 
 all:
 	python3 setup.py bdist
@@ -21,10 +22,22 @@ source:
 	cp $(CITISIM_DIR)/slice/*.ice slice/citisim
 	cp $(WIRING_SRV_DIR)/src/*.ice slice/citisim
 	cp $(PROPERTY_SRV_DIR)/src/*.ice slice/PropertyService
+	cp $(ENERGY_MODEL_DIR)/energy.ice slice/citisim
 	python3 setup.py sdist
 
 tests:
 	nosetests3 test/test_*.py
+
+install-depends:
+	sudo apt install \
+		python3-nose \
+		python3-doublex \
+		python3-zeroc-ice \
+		citisim-slice \
+		zeroc-ice37 \
+ 		zeroc-ice37-services \
+		zeroc-icebox \
+		property-service-simple
 
 vagrant-ice36-tests:
 	@if vagrant status ice36 | grep "^ice36" | grep -v running; then \

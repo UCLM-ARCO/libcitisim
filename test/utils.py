@@ -1,25 +1,11 @@
 # # -*- coding: utf-8; mode: python -*-
 
 import os
-# from time import time
-from subprocess import Popen, PIPE
-from select import select
-# from io import StringIO
-# import contextlib
-import shutil
-# import json
 import Ice
 import IceStorm
-# from doublex import (
-#     assert_that, called, method_returning, method_raising, Mimic, Spy
-# )
-# from hamcrest import (
-#     calling, raises, is_not, anything, close_to, greater_than, equal_to
-# )
-# from unittest import TestCase
-
-from libcitisim import MetadataHelper, SmartObject
 import libcitisim
+from libcitisim import MetadataHelper, SmartObject, SmartServices
+from libcitisim.util import EventsMixin as UtilEventMixin
 
 Ice.loadSlice("/usr/share/slice/PropertyService/PropertyService.ice")
 Ice.loadSlice("{0}/citisim/citizen.ice --all -I{0}".format("/usr/share/slice"))
@@ -27,58 +13,18 @@ import PropertyService as PS
 from Citisim import Citizen
 
 
-class EventsMixin:
-    @classmethod
-    def setUpClass(cls):
-        pwd = os.path.dirname(__file__)
-        db_path = "/tmp/test-libcitisim-is-db"
-        if os.path.exists(db_path):
-            shutil.rmtree(db_path)
-        os.makedirs(db_path)
-
-        cls.config = os.path.join(pwd, "tests.config")
-        cmd = "icebox --Ice.Config=" + cls.config
-        cls.is_server = Popen(cmd.split(), cwd=pwd, stdout=PIPE)
-
-        # wait for IceStorm to be ready
-        pipe = select([cls.is_server.stdout], [], [], 3)[0]
-        assert len(pipe), "IceStorm service did not launch correctly"
-        assert pipe[0].readline() == b"IceStorm is ready\n"
-
-    @classmethod
-    def tearDownClass(cls):
-        if hasattr(cls, "is_server"):
-            cls.is_server.terminate()
-            cls.is_server.kill()
+class EventsMixin(UtilEventMixin):
+    pwd = os.path.dirname(__file__)
+    config = os.path.join(pwd, "tests.config")
 
     def setUp(self):
-        # for testing purposes only
-        args = ["", "--Ice.Config=" + self.config]
-        self.ic = Ice.initialize(args)
-        self.adapter = self.ic.createObjectAdapterWithEndpoints(
-            'adapter', 'tcp -h 127.0.0.1')
-        self.adapter.activate()
-
-        # the real subject under testing
+        self._ice_setup()
         self.broker = libcitisim.Broker(self.config)
+        print("- instance setup OK")
 
     def tearDown(self):
-        self.ic.destroy()
-
-    def _get_topic(self, name):
-        manager = self.ic.propertyToProxy("TopicManager.Proxy")
-        manager = IceStorm.TopicManagerPrx.checkedCast(manager)
-        try:
-            return manager.retrieve(name)
-        except IceStorm.NoSuchTopic:
-            return manager.create(name)
-
-    def _subscribe(self, topic_name, proxy):
-        topic = self._get_topic(topic_name)
-        topic.subscribeAndGetPublisher({}, proxy)
-
-    def _adapter_add(self, servant):
-        return self.adapter.addWithUUID(servant)
+        self._ice_finish()
+        self.broker.property_manager.clear()
 
 
 class AnalogEventsMixin(EventsMixin):
@@ -150,29 +96,37 @@ class ReportEventsMixin(EventsMixin):
         publisher.notify(value, "Test", meta)
 
 
-class PropertyMixin:
+class RoutingEventsMixin(EventsMixin):
+    known_topics = ["EvacuationRoute"]
+
+    def _publish_event(self, topic_name, value=[]):
+        topic = self._get_topic(topic_name)
+        publisher = topic.getPublisher()
+        publisher = SmartServices.RoutingSinkPrx.uncheckedCast(publisher)
+        publisher.notify(value)
+
+
+class PropertyMixin(EventsMixin):
     @classmethod
     def setUpClass(cls):
-        pwd = os.path.dirname(__file__)
+        print("- setting up class...")
+        cls.pwd = os.path.dirname(__file__)
+        cls.config = os.path.join(cls.pwd, "tests.config")
 
-        cls.config = os.path.join(pwd, "tests.config")
-        cmd = "property-server --Ice.Config=" + cls.config
-        cls.is_server = Popen(cmd.split(), cwd=pwd, stdout=PIPE)
-
-        pipe = select([cls.is_server.stdout], [], [], 3)[0]
-        assert len(pipe), "Property service did not launch correctly"
-        assert pipe[0].readline()[:31] == b'PropertyServer -t -e 1.1:tcp -h'
+        cls.run_property_server()
 
     @classmethod
     def tearDownClass(cls):
-        if hasattr(cls, "is_server"):
-            cls.is_server.terminate()
-            cls.is_server.kill()
+        if hasattr(cls, "ps_server"):
+            cls.ps_server.terminate()
+            cls.ps_server.kill()
 
     def setUp(self):
         # for testing purposes only
         args = ["", "--Ice.Config=" + self.config]
         self.ic = Ice.initialize(args)
+        self.props = PS.PropertyServerPrx.checkedCast(
+            self.ic.propertyToProxy("PropertyServer.Proxy"))
 
         # the real subject under testing
         self.broker = libcitisim.Broker(self.config)
@@ -180,15 +134,11 @@ class PropertyMixin:
     def tearDown(self):
         self.ic.destroy()
 
-    # FIXME: make manager a memoized property!
     def _get_property(self, path):
-        manager = self.ic.propertyToProxy("PropertyService.Proxy")
-        manager = PS.PropertyServerPrx.checkedCast(manager)
-        return manager.get(path)
+        return self.props.get(path)
 
-    # FIXME: make manager a memoized property!
     def _set_property(self, path, value):
-        manager = self.ic.propertyToProxy("PropertyService.Proxy")
-        manager = PS.PropertyServerPrx.checkedCast(manager)
-        return manager.set(path, value)
+        return self.props.set(path, value)
+
+
 
