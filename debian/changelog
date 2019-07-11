@@ -1,3 +1,9 @@
+libcitisim (1.20190711.2-1) unstable; urgency=low
+
+  * New release, datamodel sync
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 11 Jul 2019 13:25:06 +0200
+
 libcitisim (1.20190711.1-1) unstable; urgency=low
 
   * New release, add support for RoutingSink subscriber
