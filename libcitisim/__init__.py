@@ -182,6 +182,25 @@ class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
         return self._notify(value, source, meta, current)
 
 
+class RoutingSinkI(SmartServices.RoutingSink, EventWithValueMixin):
+    def __init__(self, topic_name, callback):
+        self._topic_name = topic_name
+        self._callback = callback
+
+    def notify(self, value, current):
+        try:
+            logger.debug(
+                "event arrived on '{}', value: {}".format(self._topic_name, value)
+            )
+            self._callback(value)
+
+        except TypeError as e:
+            logger.error(e)
+            logger.error(
+                "There were some error on provided callback '{}', do you "
+                "provide the right signature?\n"
+                "Expected signature: 'def callback(value)'".format(self._callback))
+
 
 class ObservablePublisher(SmartObject.Observable, ObservableMixin):
     proxy_types = {
@@ -255,6 +274,7 @@ class Broker:
         SmartObject.AnalogSink: AnalogSinkI,
         SmartObject.DigitalSink: DigitalSinkI,
         Citizen.ReportSink: ReportSinkI,
+        SmartServices.RoutingSink: RoutingSinkI,
     }
 
     def __init__(self, arg=None, ic=None):

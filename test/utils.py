@@ -4,7 +4,7 @@ import os
 import Ice
 import IceStorm
 import libcitisim
-from libcitisim import MetadataHelper, SmartObject
+from libcitisim import MetadataHelper, SmartObject, SmartServices
 from libcitisim.util import EventsMixin as UtilEventMixin
 
 Ice.loadSlice("/usr/share/slice/PropertyService/PropertyService.ice")
@@ -94,6 +94,16 @@ class ReportEventsMixin(EventsMixin):
             meta = MetadataHelper(**meta).to_dict()
         publisher = Citizen.ReportSinkPrx.uncheckedCast(publisher)
         publisher.notify(value, "Test", meta)
+
+
+class RoutingEventsMixin(EventsMixin):
+    known_topics = ["EvacuationRoute"]
+
+    def _publish_event(self, topic_name, value=[]):
+        topic = self._get_topic(topic_name)
+        publisher = topic.getPublisher()
+        publisher = SmartServices.RoutingSinkPrx.uncheckedCast(publisher)
+        publisher.notify(value)
 
 
 class PropertyMixin(EventsMixin):

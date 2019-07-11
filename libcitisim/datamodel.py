@@ -129,6 +129,7 @@ topic_types = {
     "Twilight": SmartObject.DigitalSink,
 
     "CitizenReport": Citizen.ReportSink,
+    "EvacuationRoute": SmartServices.RoutingSink,
 }
 
 
