@@ -38,6 +38,7 @@ from citisim import infosystem
 
 logger = logging.getLogger('libcitisim')
 logger.setLevel(logging.ERROR)
+logger.propagate = False
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 handler.setFormatter(logging.Formatter('[%(name)s]:%(levelname)s %(message)s'))

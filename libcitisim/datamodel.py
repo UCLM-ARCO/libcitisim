@@ -164,6 +164,8 @@ transducer_types = {
     'CitizenReporter': Citizen.ReportSink,
 
     'RouteService': SmartServices.RoutingSink,
+
+    'SmartScreen': SmartServices.MessageRender,
 }
 
 
