@@ -1,3 +1,9 @@
+libcitisim (1.20190723-1) unstable; urgency=low
+
+  * New release, add more transducer types
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 23 Jul 2019 11:02:12 +0200
+
 libcitisim (1.20190711.2-1) unstable; urgency=low
 
   * New release, datamodel sync
