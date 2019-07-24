@@ -142,4 +142,3 @@ class EventsMixin:
 
     def _adapter_add(self, servant):
         return self.adapter.addWithUUID(servant)
->>>>>>> ce2ff5685a27740b8c94da08584a5660a247e82e
