@@ -161,6 +161,8 @@ transducer_types = {
     'DoorSensor': SmartObject.DigitalSink,
     'PIRSensor': SmartObject.DigitalSink,
     'RelayActuator': SmartObject.DigitalSink,
+    'ValveActuator': SmartObject.DigitalSink,
+    'SwitchActuator': SmartObject.DigitalSink,
 
     'CitizenReporter': Citizen.ReportSink,
 
