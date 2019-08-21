@@ -4,6 +4,12 @@ libcitisim (1.20190821-1) unstable; urgency=low
 
  -- Oscar Aceña Herrera <oscaracena@gmail.com>  Wed, 21 Aug 2019 14:03:46 +0200
 
+libcitisim (1.20190724-1) unstable; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Wed, 24 Jul 2019 11:09:04 +0200
+
 libcitisim (1.20190723-1) unstable; urgency=low
 
   * New release, add more transducer types
