@@ -1,3 +1,9 @@
+libcitisim (1.20190823-1) unstable; urgency=low
+
+  * New release
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Fri, 23 Aug 2019 08:13:50 +0200
+
 libcitisim (1.20190821-1) unstable; urgency=low
 
   * New release, more transducer types
