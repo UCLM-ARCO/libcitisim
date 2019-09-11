@@ -48,6 +48,10 @@ WELCOME_SERVER_PROXY = "WelcomeServer.Proxy"
 TOPICMANAGER_PROXY = 'TopicManager.Proxy'
 PROPERTY_SERVER_PROXY = 'PropertyServer.Proxy'
 WIRING_SERVER_PROXY = 'WiringServer.Proxy'
+
+# FIXME: 'energymodel' is very application specific
+# we should provide a generic solution for this
+
 ENERGY_MODEL_SERVER_PROXY = "EnergyModelServer.Proxy"
 
 default_config = {
@@ -239,7 +243,6 @@ class ObservablePublisher(SmartObject.Observable, ObservableMixin):
         SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
         Citizen.ReportSink: Citizen.ReportSinkPrx,
         SmartServices.RoutingSink: SmartServices.RoutingSinkPrx,
-        # infosystem.LoudSpeakerManager: infosystem.LoudSpeakerManagerPrx,
     }
 
     def __init__(self, broker, source, transducer_type, meta):
