@@ -16,9 +16,11 @@ if not os.path.exists(SLICE_DIR):
 Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citizen.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 Ice.loadSlice('{}/services.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
+Ice.loadSlice('{}/infosystem.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 
 import SmartObject
 import SmartServices
+from citisim import infosystem
 from Citisim import Citizen
 
 
@@ -130,6 +132,7 @@ topic_types = {
 
     "CitizenReport": Citizen.ReportSink,
     "EvacuationRoute": SmartServices.RoutingSink,
+    "SpeakerMessages": infosystem.LoudSpeakerManager,
 }
 
 
@@ -169,6 +172,8 @@ transducer_types = {
     'RouteService': SmartServices.RoutingSink,
 
     'SmartScreen': SmartServices.MessageRender,
+    'Speaker': SmartServices.MessageRender,
+    'SpeakerManager': infosystem.LoudSpeakerManager,
 }
 
 

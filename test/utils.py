@@ -9,8 +9,10 @@ from libcitisim.util import EventsMixin as UtilEventMixin
 
 Ice.loadSlice("/usr/share/slice/PropertyService/PropertyService.ice")
 Ice.loadSlice("{0}/citisim/citizen.ice --all -I{0}".format("/usr/share/slice"))
+Ice.loadSlice("{0}/citisim/infosystem.ice --all -I{0}".format("/usr/share/slice"))
 import PropertyService as PS
 from Citisim import Citizen
+from citisim import infosystem
 
 
 class EventsMixin(UtilEventMixin):
@@ -104,6 +106,22 @@ class RoutingEventsMixin(EventsMixin):
         publisher = topic.getPublisher()
         publisher = SmartServices.RoutingSinkPrx.uncheckedCast(publisher)
         publisher.notify(value)
+
+
+class SpeakerManagerEventsMixin(EventsMixin):
+    known_topics = ["SpeakerMessages"]
+
+    def _publish_sayInPlace(self, topic_name, place="somewhere", message="messageid"):
+        topic = self._get_topic(topic_name)
+        publisher = topic.getPublisher()
+        publisher = infosystem.LoudSpeakerManagerPrx.uncheckedCast(publisher)
+        publisher.sayInPlace(place, message)
+
+    def _publish_sayInSpeaker(self, topic_name, speaker="spkr1", message="messageid"):
+        topic = self._get_topic(topic_name)
+        publisher = topic.getPublisher()
+        publisher = infosystem.LoudSpeakerManagerPrx.uncheckedCast(publisher)
+        publisher.sayInSpeaker(speaker, message)
 
 
 class PropertyMixin(EventsMixin):

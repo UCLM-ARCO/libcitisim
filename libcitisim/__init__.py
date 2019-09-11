@@ -183,7 +183,7 @@ class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
         return self._notify(value, source, meta, current)
 
 
-class RoutingSinkI(SmartServices.RoutingSink, EventWithValueMixin):
+class RoutingSinkI(SmartServices.RoutingSink):
     def __init__(self, topic_name, callback):
         self._topic_name = topic_name
         self._callback = callback
@@ -203,12 +203,43 @@ class RoutingSinkI(SmartServices.RoutingSink, EventWithValueMixin):
                 "Expected signature: 'def callback(value)'".format(self._callback))
 
 
+class LoudSpeakerManagerI(infosystem.LoudSpeakerManager):
+    def __init__(self, topic_name, callback):
+        self._topic_name = topic_name
+        self._callback = callback
+
+    def sayInPlace(self, placeid, message, current):
+        try:
+            self._callback.sayInPlace(placeid, message)
+        except (AttributeError, TypeError) as e:
+            logger.error(e)
+            logger.error(
+                "There were some error on provided callback object '{}', "
+                "do you implement the expected methods?\n"
+                "- method signature: 'def sayInPlace(self, place, message)'"
+                .format(self._callback)
+            )
+
+    def sayInSpeaker(self, speakerid, message, current):
+        try:
+            self._callback.sayInSpeaker(speakerid, message)
+        except (AttributeError, TypeError) as e:
+            logger.error(e)
+            logger.error(
+                "There were some error on provided callback object '{}', "
+                "do you implement the expected methods?\n"
+                "- method signature: 'def sayInSpeaker(self, speaker, message)'"
+                .format(self._callback)
+            )
+
+
 class ObservablePublisher(SmartObject.Observable, ObservableMixin):
     proxy_types = {
         SmartObject.AnalogSink: SmartObject.AnalogSinkPrx,
         SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
         Citizen.ReportSink: Citizen.ReportSinkPrx,
         SmartServices.RoutingSink: SmartServices.RoutingSinkPrx,
+        # infosystem.LoudSpeakerManager: infosystem.LoudSpeakerManagerPrx,
     }
 
     def __init__(self, broker, source, transducer_type, meta):
@@ -270,12 +301,65 @@ class ObservablePublisher(SmartObject.Observable, ObservableMixin):
         topic.subscribeAndGetPublisher({}, observer)
 
 
+class ObservableInfosystemPublisher(SmartObject.Observable, ObservableMixin):
+    proxy_types = {
+        infosystem.LoudSpeakerManager: infosystem.LoudSpeakerManagerPrx,
+    }
+
+    def __init__(self, broker, source, transducer_type):
+        try:
+            self.observer_cast = self.proxy_types[
+                datamodel.transducer_types[transducer_type]
+            ]
+        except KeyError:
+            raise TypeError("Unknown transducer type: {}".format(transducer_type))
+
+        ObservableMixin.__init__(self)
+
+        assert source is not None, "Invalid provided source"
+        source = source.strip()
+        assert source != "", "Invalid provided source"
+
+        self.broker = broker
+        self.source = source
+
+    def setObserver(self, observer, current):
+        ObservableMixin.setObserver(self, observer, current)
+
+    def sayInPlace(self, place, message):
+        if self.observer is None:
+            raise ValueError("Publisher not yet configured!")
+
+        self.observer.sayInPlace(place, message)
+        logger.debug(
+            "publish event sayInPlace() to '{}', place: {}, message: {}"
+            .format(self.observer, place, message)
+        )
+
+    def sayInSpeaker(self, speaker, message):
+        if self.observer is None:
+            raise ValueError("Publisher not yet configured!")
+
+        self.observer.sayInSpeaker(speaker, message)
+        logger.debug(
+            "publish event sayInSpeaker() to '{}', speaker: {}, message: {}"
+            .format(self.observer, speaker, message)
+        )
+
+    def subscribe(self, observer):
+        prop_key = self.source + " | private-channel"
+        channel_name = self.broker.get_property(prop_key)
+        topic = self.broker.get_topic(channel_name)
+        topic.subscribeAndGetPublisher({}, observer)
+
+
 class Broker:
     servant_types = {
         SmartObject.AnalogSink: AnalogSinkI,
         SmartObject.DigitalSink: DigitalSinkI,
         Citizen.ReportSink: ReportSinkI,
         SmartServices.RoutingSink: RoutingSinkI,
+        infosystem.LoudSpeakerManager: LoudSpeakerManagerI,
     }
 
     def __init__(self, arg=None, ic=None):
@@ -413,7 +497,12 @@ class Broker:
 
     def get_publisher(self, source, transducer_type, meta={}):
         logger.debug("retrieving publisher for '{}'...".format(source))
-        pub = ObservablePublisher(self, source, transducer_type, meta)
+
+        if transducer_type in ["SpeakerManager"]:
+            pub = ObservableInfosystemPublisher(self, source, transducer_type)
+        else:
+            pub = ObservablePublisher(self, source, transducer_type, meta)
+
         pub_prx = self.adapter.add(pub, Ice.stringToIdentity(source))
         self.hello(str(pub_prx), transducer_type)
         return pub
