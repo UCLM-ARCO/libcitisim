@@ -241,8 +241,9 @@ class ObservablePublisher(SmartObject.Observable, ObservableMixin):
     proxy_types = {
         SmartObject.AnalogSink: SmartObject.AnalogSinkPrx,
         SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
-        Citizen.ReportSink: Citizen.ReportSinkPrx,
+        SmartObject.EventSink: SmartObject.EventSinkPrx,
         SmartServices.RoutingSink: SmartServices.RoutingSinkPrx,
+        Citizen.ReportSink: Citizen.ReportSinkPrx,
     }
 
     def __init__(self, broker, source, transducer_type, meta):

@@ -133,6 +133,7 @@ topic_types = {
     "CitizenReport": Citizen.ReportSink,
     "EvacuationRoute": SmartServices.RoutingSink,
     "SpeakerMessages": infosystem.LoudSpeakerManager,
+    "Alarm": SmartObject.EventSink,
 }
 
 
@@ -174,6 +175,7 @@ transducer_types = {
     'SmartScreen': SmartServices.MessageRender,
     'Speaker': SmartServices.MessageRender,
     'SpeakerManager': infosystem.LoudSpeakerManager,
+    'AlarmNotifier': SmartObject.EventSink,
 }
 
 
