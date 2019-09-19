@@ -132,16 +132,18 @@ namespace LibCitisim {
     }
 
     public delegate void ADSubscriber(
-        dynamic value, string source, Dictionary<string, string> meta=null
+        dynamic value, string source, Dictionary<string, string> meta
     );
+
+    public delegate void SimpleADSubscriber(dynamic value, string source);
 
     internal class EventWithValue {
 
         private string topicName;
-        private ADSubscriber callback;
+        private dynamic callback;
         private Logger logger;
 
-        public EventWithValue(string topicName, ADSubscriber callback) {
+        public EventWithValue(string topicName, dynamic callback) {
             this.topicName = topicName;
             this.callback = callback;
             logger = Logger.GetLogger("libcitisim");
@@ -186,7 +188,7 @@ namespace LibCitisim {
 
         private EventWithValue instance;
 
-        public AnalogSinkI(string topicName, ADSubscriber callback) {
+        public AnalogSinkI(string topicName, dynamic callback) {
             instance = new EventWithValue(topicName, callback);
         }
 
@@ -199,7 +201,7 @@ namespace LibCitisim {
 
         private EventWithValue instance;
 
-        public DigitalSinkI(string topicName, ADSubscriber callback) {
+        public DigitalSinkI(string topicName, dynamic callback) {
             instance = new EventWithValue(topicName, callback);
         }
 
@@ -212,7 +214,7 @@ namespace LibCitisim {
 
         private EventWithValue instance;
 
-        public PersonTrackerI(string topicName, ADSubscriber callback) {
+        public PersonTrackerI(string topicName, dynamic callback) {
             instance = new EventWithValue(topicName, callback);
         }
 
@@ -335,7 +337,7 @@ namespace LibCitisim {
                 );
         }
 
-        public void sayInSpeaker(string speaker, string message) {
+        public void SayInSpeaker(string speaker, string message) {
             if (observer == null)
                 throw new InvalidOperationException("Publisher not yet configured!");
 
@@ -511,11 +513,27 @@ namespace LibCitisim {
         }
 
         public void Subscribe(string topicName, ADSubscriber callback) {
+            _doSubscribe(topicName, callback);
+        }
+
+        public void Subscribe(string topicName, SimpleADSubscriber callback) {
+            _doSubscribe(topicName, callback);
+        }
+
+        public void SubscribeToPublisher(string source, ADSubscriber callback) {
+            _doSubscribeToPublisher(source, callback);
+        }
+
+        public void SubscribeToPublisher(string source, SimpleADSubscriber callback) {
+            _doSubscribeToPublisher(source, callback);
+        }
+
+        private void _doSubscribe(string topicName, dynamic callback) {
             Ice.ObjectPrx proxy = GetServantProxy(topicName, callback);
             SubscribeProxy(topicName, proxy);
         }
 
-        public void SubscribeToPublisher(string source, ADSubscriber callback) {
+        private void _doSubscribeToPublisher(string source, dynamic callback) {
             try {
                 var privateChannelKey = source + " | private-channel";
                 string topicName = JsonConvert.DeserializeObject<string>(
@@ -575,7 +593,7 @@ namespace LibCitisim {
             }
         }
 
-        private Ice.ObjectPrx GetServantProxy(string topicName, ADSubscriber callback) {
+        private Ice.ObjectPrx GetServantProxy(string topicName, dynamic callback) {
             Type type;
             if (!DataModel.TopicTypes.TryGetValue(topicName, out type)) {
                 throw new ArgumentException($"unknown topic name: '{topicName}'");

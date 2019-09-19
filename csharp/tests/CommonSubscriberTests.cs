@@ -41,7 +41,7 @@ namespace LibCitisim {
         [Fact]
         public void SubscribeToAnUnknownTopic_IsNotPossible() {
             Assert.Throws<ArgumentException>(() => {
-                broker.Subscribe("UnknownTopic", null);
+                broker.Subscribe("UnknownTopic", (v, s) => {});
             });
         }
 

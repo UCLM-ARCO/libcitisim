@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package  xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>libcitisim</id>
+    <version>0.20190919.1</version>
+    <authors>Oscar Acena, Arco Research Group</authors>
+    <description>Library for accessing Citisim features</description>
+    <dependencies>
+      <dependency id="Newtonsoft.Json" version="12.0.1" />
+      <dependency id="zeroc.ice.net" version="3.7.1" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="LibCitisim/libcitisim.dll" target="lib/netstandard" />
+  </files>
+</package>

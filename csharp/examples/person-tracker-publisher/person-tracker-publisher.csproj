@@ -6,4 +6,8 @@
     <RootNamespace>person_tracker</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="libcitisim" Version="0.20190919.1" />
+  </ItemGroup>
+
 </Project>

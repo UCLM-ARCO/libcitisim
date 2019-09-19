@@ -30,16 +30,21 @@ test-this: F ?= ""
 test-this:
 	dotnet test --filter "$(F)"
 
-package:
-	dotnet publish -o $$(pwd)/LibCitisim src
+package: compile
 	zip -r libcitisim-cs-$(VER).zip LibCitisim/*.dll -x LibCitisim/Microsoft.CSharp.dll
+
+nuget: compile
+	nuget pack -IncludeReferencedProjects -properties Configuration=Release
+
+compile: all
+	dotnet publish -o $$(pwd)/LibCitisim src
 
 install-deps:
 	@echo "Please, visit $(DOTNETURL) for more information about installing .NET SDK"
 
 .PHONY: clean vclean
 clean:
-	$(RM) -r *.zip LibCitisim
+	$(RM) -r *.zip LibCitisim *.nupkg
 
 vclean: clean
 	$(RM) -r $(OUT_DIR)

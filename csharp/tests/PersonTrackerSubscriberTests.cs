@@ -10,7 +10,7 @@ namespace LibCitisim {
         [Fact]
         public void SubscriberCallbackIsCalled() {
             EventWaitHandle called = new EventWaitHandle(false, EventResetMode.AutoReset);
-            broker.Subscribe("PersonTracking", (value, source, meta) => {
+            broker.Subscribe("PersonTracking", (value, source) => {
                 called.Set();
             });
 
