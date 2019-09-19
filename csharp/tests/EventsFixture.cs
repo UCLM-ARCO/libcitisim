@@ -17,7 +17,6 @@ namespace LibCitisim {
             Console.WriteLine("Setting up for next test...");
             config = pwd + "/tests.config";
 
-            // for testing purposes only
             List<string> args = new List<string> () {"", "--Ice.Config=" + config};
             string[] args_ = args.ToArray();
             ic = Ice.Util.initialize(ref args_);
@@ -25,7 +24,6 @@ namespace LibCitisim {
             adapter = ic.createObjectAdapterWithEndpoints("adapter", "tcp -h 127.0.0.1 -p 9999");
             adapter.activate();
 
-            // the real subject under testing
             try {
                 broker = Broker.Initialize(config);
             }
@@ -42,7 +40,7 @@ namespace LibCitisim {
 
             Console.WriteLine("Setting up for a bidir test...");
             config = pwd + "/tests-bidir.config";
-            // for testing purposes only
+
             List<string> args = new List<string> () {"", "--Ice.Config=" + config};
             string[] args_ = args.ToArray();
             ic = Ice.Util.initialize(ref args_);
@@ -50,7 +48,6 @@ namespace LibCitisim {
             adapter = ic.createObjectAdapterWithEndpoints("adapter", "tcp -h 127.0.0.1 -p 9999");
             adapter.activate();
 
-            // the real subject under testing
             try {
                 broker = Broker.Initialize(config);
             }

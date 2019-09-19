@@ -56,6 +56,8 @@ namespace LibCitisim {
             {"Unconfigured", typeof(SmartObject.AnalogSink)},
 
             {"Twilight", typeof(SmartObject.DigitalSink)},
+
+            {"PersonTracking", typeof(KinectData.PersonTracker)},
         };
 
         public static Dictionary<string, Type> TransducerTypes = new Dictionary<string, Type> {
@@ -82,6 +84,8 @@ namespace LibCitisim {
             {"TwilightSensor", typeof(SmartObject.DigitalSink)},
             {"DoorSensor", typeof(SmartObject.DigitalSink)},
             {"RelayActuator", typeof(SmartObject.DigitalSink)},
+
+            {"PersonTracker", typeof(KinectData.PersonTracker)}
         };
 
         public static List<string> Units = new List<string> {

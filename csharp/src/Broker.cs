@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Ice;
 using IceStorm;
+using KinectData;
 using Newtonsoft.Json;
 using PropertyService;
 using SmartObject;
@@ -131,7 +132,7 @@ namespace LibCitisim {
     }
 
     public delegate void ADSubscriber(
-        dynamic value, string source, Dictionary<string, string> meta
+        dynamic value, string source, Dictionary<string, string> meta=null
     );
 
     internal class EventWithValue {
@@ -159,6 +160,20 @@ namespace LibCitisim {
 
                 var dictmeta = MetadataUtil.FromMetadata(meta);
                 callback(value, source, dictmeta);
+            }
+            catch (ArgumentException e) {
+                logger.Error(e.ToString());
+                logger.Error("there were some error on provided callback!");
+            }
+        }
+
+        public void simpleNotify(dynamic value, string source, Current current=null) {
+            try {
+                logger.Debug(string.Format(
+                    "event arrived on '{0}, value: {1}, source: {2}",
+                    topicName, value, source
+                ));
+                callback(value, source);
             }
             catch (ArgumentException e) {
                 logger.Error(e.ToString());
@@ -193,6 +208,19 @@ namespace LibCitisim {
         }
     }
 
+    public class PersonTrackerI : KinectData.PersonTrackerDisp_ {
+
+        private EventWithValue instance;
+
+        public PersonTrackerI(string topicName, ADSubscriber callback) {
+            instance = new EventWithValue(topicName, callback);
+        }
+
+        public override void notify(KinectPoint[] points, string source, Current current = null) {
+            instance.simpleNotify(points, source, current);
+        }
+    }
+
     public class ObservableMixin : SmartObject.ObservableDisp_ {
         protected Logger logger = Logger.GetLogger("libcitisim");
         protected dynamic observer;
@@ -208,6 +236,9 @@ namespace LibCitisim {
                 {typeof(SmartObject.DigitalSink), (prx) => {
                     return SmartObject.DigitalSinkPrxHelper.uncheckedCast(prx);
                 }},
+                {typeof(KinectData.PersonTracker), (prx) => {
+                    return KinectData.PersonTrackerPrxHelper.uncheckedCast(prx);
+                }}
             };
 
         public ObservableMixin(Broker broker, string source, string transducerType) {
@@ -317,6 +348,24 @@ namespace LibCitisim {
         }
     }
 
+    public class ObservablePersonTrackerPublisher : ObservableMixin {
+        public ObservablePersonTrackerPublisher(Broker broker, string source,
+            string transducerType) : base(broker, source, transducerType) {
+        }
+
+        public void Publish(KinectPoint[] points) {
+            if (observer == null)
+                throw new InvalidOperationException("Publisher not yet configured!");
+
+            observer.notify(points, source);
+
+            logger.Debug(
+                $"publish event to '{observer}', num of points: {points.Length}, " +
+                $"source: {source}"
+            );
+        }
+    }
+
     public delegate dynamic ProxyCasting(Ice.ObjectPrx value);
 
     public sealed class Broker : IDisposable {
@@ -335,7 +384,8 @@ namespace LibCitisim {
         private static Dictionary<Type, Type> ServantTypes =
             new Dictionary<Type, Type> {
                 {typeof(SmartObject.AnalogSink), typeof(AnalogSinkI)},
-                {typeof(SmartObject.DigitalSink), typeof(DigitalSinkI)}
+                {typeof(SmartObject.DigitalSink), typeof(DigitalSinkI)},
+                {typeof(KinectData.PersonTracker), typeof(PersonTrackerI)}
             };
 
         private static Broker instance;
@@ -501,12 +551,18 @@ namespace LibCitisim {
             logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
         }
 
-        public ObservablePublisher GetPublisher(
+        public dynamic GetPublisher(
                 string source, string transducerType, StringDict meta=null) {
 
             logger.Debug($"retrieving publisher for '{source}'...");
-            var pub = new ObservablePublisher(this, source, transducerType, meta);
-            var pub_prx = adapter.add(pub, Ice.Util.stringToIdentity(source));
+
+            dynamic pub = null;
+            if (transducerType == "PersonTracker")
+                pub = new ObservablePersonTrackerPublisher(this, source, transducerType);
+            else
+                pub = new ObservablePublisher(this, source, transducerType, meta);
+
+            var pub_prx = adapter.add((Ice.Object)pub, Ice.Util.stringToIdentity(source));
             hello(pub_prx.ToString(), transducerType);
             return pub;
         }

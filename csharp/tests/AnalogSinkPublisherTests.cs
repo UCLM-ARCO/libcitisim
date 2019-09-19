@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using Ice;
-using IceInternal;
 using Moq;
 using SmartObject;
 using Xunit;
@@ -158,14 +154,11 @@ namespace LibCitisim {
         private StringDict meta = new StringDict() {{ "quality", "200" }};
 
         private Ice.ObjectPrx proxy;
-        private Mock<AnalogSinkDisp_> servant;
-        private EventWaitHandle ev;
+        private Mock<AnalogSinkDisp_> servant = new Mock<AnalogSinkDisp_> {CallBase = true};
+        private EventWaitHandle ev = new EventWaitHandle(false, EventResetMode.AutoReset);
 
         public BidirAnalogSinkPublisherTests() {
             SetupBidirBroker();
-
-            ev = new EventWaitHandle(false, EventResetMode.AutoReset);
-            servant = new Mock<AnalogSinkDisp_> {CallBase = true};
             proxy = AdapterAdd((Ice.Object)servant.Object);
         }
 

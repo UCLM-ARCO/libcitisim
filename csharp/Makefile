@@ -5,7 +5,7 @@ VER       ?= $(shell date +%Y.%m%d)
 SLICE2CS  ?= slice2cs
 SLICE_DIR  = /usr/share/slice
 OUT_DIR    = src/generated
-SLICES     = iot.ice PropertyService.ice
+SLICES     = iot.ice PropertyService.ice PersonTracker.ice
 
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE = true
 export TEST_DIR = $(shell pwd)/tests
