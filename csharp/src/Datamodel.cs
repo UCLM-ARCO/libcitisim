@@ -145,6 +145,8 @@ namespace LibCitisim {
             {"longitude", new Cast(typeof(float))},
             {"altitude", new Cast(typeof(float))},
             {"place", new Cast(typeof(string), desc: "Standard placeID")},
+            {"category", new Cast(typeof(string), desc: "Tags or categories")},
+            {"citizenemail", new Cast(typeof(string), desc: "TCitizen Report user identifier")},
         };
     }
 }

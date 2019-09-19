@@ -85,13 +85,15 @@ namespace LibCitisim {
 
         private static Dictionary<string, MetadataField> NamedFields =
             new Dictionary<string, MetadataField> {
-                {"timestamp",  MetadataField.Timestamp},
-                {"quality",    MetadataField.Quality},
-                {"expiration", MetadataField.Expiration},
-                {"latitude",   MetadataField.Latitude},
-                {"longitude",  MetadataField.Longitude},
-                {"altitude",   MetadataField.Altitude},
-                {"place",      MetadataField.Place},
+                {"timestamp",     MetadataField.Timestamp},
+                {"quality",       MetadataField.Quality},
+                {"expiration",    MetadataField.Expiration},
+                {"latitude",      MetadataField.Latitude},
+                {"longitude",     MetadataField.Longitude},
+                {"altitude",      MetadataField.Altitude},
+                {"place",         MetadataField.Place},
+                {"category",      MetadataField.Category},
+                {"citizenemail",  MetadataField.CitizenEmail},
             };
 
         public static StringDict FromMetadata(Metadata meta) {
@@ -191,8 +193,12 @@ namespace LibCitisim {
         }
     }
 
-    public class ObservablePublisher : SmartObject.ObservableDisp_ {
-        private Logger logger = Logger.GetLogger("libcitisim");
+    public class ObservableMixin : SmartObject.ObservableDisp_ {
+        protected Logger logger = Logger.GetLogger("libcitisim");
+        protected dynamic observer;
+        protected ProxyCasting observerCast;
+        protected Broker broker;
+        protected string source;
 
         internal static Dictionary<Type, ProxyCasting> ProxyTypes =
             new Dictionary<Type, ProxyCasting> {
@@ -204,27 +210,18 @@ namespace LibCitisim {
                 }},
             };
 
-        private Broker broker;
-        private string source;
-        private StringDict meta;
-        private Type type;
-        private dynamic observer;
-        ProxyCasting observerCast;
+        public ObservableMixin(Broker broker, string source, string transducerType) {
+            source = source.Trim();
+            if (String.IsNullOrEmpty(source))
+                throw new ArgumentException("Invalid provided source");
 
-        public ObservablePublisher(
-                Broker broker, string source, string transducerType, StringDict meta=null) {
-
-            if (meta == null)
-                meta = new StringDict();
-
-            this.broker = broker;
-            this.source = source;
-            this.meta = meta;
-
+            Type type;
             if (!DataModel.TransducerTypes.TryGetValue(transducerType, out type))
                 throw new ArgumentException($"Unknown transducer type: {transducerType}");
             observerCast = ProxyTypes[type];
-            Console.WriteLine(type);
+
+            this.broker = broker;
+            this.source = source;
         }
 
         public override void setObserver(string observer, Ice.Current current) {
@@ -232,6 +229,28 @@ namespace LibCitisim {
             dynamic proxy = ic.stringToProxy(observer);
             this.observer = observerCast(proxy);
             logger.Info($"new observer {observer} for {current.id.name}");
+        }
+
+        public void Subscribe(Ice.ObjectPrx observer) {
+            var propKey = source + " | private-channel";
+            var channelName = JsonConvert.DeserializeObject<string>(
+                broker.GetProperty(propKey));
+            var topic = broker.GetTopic(channelName);
+            topic.subscribeAndGetPublisher(null, observer);
+            logger.Debug($"subscribe observer to topic '{channelName}'");
+        }
+    }
+
+    public class ObservablePublisher : ObservableMixin {
+        private StringDict meta;
+
+        public ObservablePublisher(Broker broker, string source,
+            string transducerType, StringDict meta=null) :
+                base(broker, source, transducerType) {
+
+            if (meta == null)
+                meta = new StringDict();
+            this.meta = meta;
         }
 
         public void Publish(dynamic value, StringDict meta=null) {
@@ -266,14 +285,35 @@ namespace LibCitisim {
                 );
             }
         }
+    }
 
-        public void Subscribe(Ice.ObjectPrx observer) {
-            var propKey = source + " | private-channel";
-            var channelName = JsonConvert.DeserializeObject<string>(
-                broker.GetProperty(propKey));
-            var topic = broker.GetTopic(channelName);
-            topic.subscribeAndGetPublisher(null, observer);
-            logger.Debug($"subscribe observer to topic '{channelName}'");
+    public class ObservableInfosystemPublisher : ObservableMixin {
+        public ObservableInfosystemPublisher(Broker broker, string source,
+            string transducerType) : base(broker, source, transducerType) {
+        }
+
+        public void SayInPlace(string place, string message) {
+            if (observer == null)
+                throw new InvalidOperationException("Publisher not yet configured!");
+
+            observer.sayInPlace(place, message);
+
+            logger.Debug(
+                    $"publish sayInPlace event to '{observer}', place: {place}, " +
+                    $"message: {message}"
+                );
+        }
+
+        public void sayInSpeaker(string speaker, string message) {
+            if (observer == null)
+                throw new InvalidOperationException("Publisher not yet configured!");
+
+            observer.sayInSpeaker(speaker, message);
+
+            logger.Debug(
+                    $"publish sayInSpeaker event to '{observer}', speaker: {speaker}, " +
+                    $"message: {message}"
+                );
         }
     }
 

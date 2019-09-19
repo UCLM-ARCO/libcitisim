@@ -54,6 +54,8 @@ namespace SmartObject
         Longitude,
         Altitude,
         Place,
+        Category,
+        CitizenEmail,
         Delta,
         Size
     }
@@ -63,14 +65,14 @@ namespace SmartObject
     {
         public static void write(Ice.OutputStream ostr, MetadataField v)
         {
-            ostr.writeEnum((int)v, 8);
+            ostr.writeEnum((int)v, 10);
         }
 
         [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
         public static MetadataField read(Ice.InputStream istr)
         {
             MetadataField v;
-            v = (SmartObject.MetadataField)istr.readEnum(8);
+            v = (SmartObject.MetadataField)istr.readEnum(10);
             return v;
         }
     }
@@ -273,6 +275,21 @@ namespace SmartObject
     [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720")]
     [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1722")]
     [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1724")]
+    public partial interface PulseSink : Ice.Object, PulseSinkOperations_
+    {
+    }
+
+    [_System.Runtime.InteropServices.ComVisible(false)]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1707")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1711")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1715")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1716")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1722")]
+    [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1724")]
     public partial interface AccelerometerSink : Ice.Object, AccelerometerSinkOperations_
     {
     }
@@ -309,6 +326,9 @@ namespace SmartObject
 
     [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
     public delegate void Callback_EventSink_notify();
+
+    [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
+    public delegate void Callback_PulseSink_notify();
 
     [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
     public delegate void Callback_AccelerometerSink_notify();
@@ -392,11 +412,27 @@ namespace SmartObject
     [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
     public interface EventSinkPrx : Ice.ObjectPrx
     {
+        void notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext());
+
+        _System.Threading.Tasks.Task notifyAsync(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext(), _System.IProgress<bool> progress = null, _System.Threading.CancellationToken cancel = new _System.Threading.CancellationToken());
+
+        Ice.AsyncResult<SmartObject.Callback_EventSink_notify> begin_notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext());
+
+        Ice.AsyncResult begin_notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.AsyncCallback callback, object cookie);
+
+        Ice.AsyncResult begin_notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context, Ice.AsyncCallback callback, object cookie);
+
+        void end_notify(Ice.AsyncResult asyncResult);
+    }
+
+    [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
+    public interface PulseSinkPrx : Ice.ObjectPrx
+    {
         void notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext());
 
         _System.Threading.Tasks.Task notifyAsync(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext(), _System.IProgress<bool> progress = null, _System.Threading.CancellationToken cancel = new _System.Threading.CancellationToken());
 
-        Ice.AsyncResult<SmartObject.Callback_EventSink_notify> begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext());
+        Ice.AsyncResult<SmartObject.Callback_PulseSink_notify> begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext());
 
         Ice.AsyncResult begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.AsyncCallback callback, object cookie);
 
@@ -494,6 +530,13 @@ namespace SmartObject
 
     [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
     public interface EventSinkOperations_
+    {
+        [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
+        void notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.Current current = null);
+    }
+
+    [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
+    public interface PulseSinkOperations_
     {
         [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
         void notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.Current current = null);
@@ -780,7 +823,7 @@ namespace SmartObject
                 ostr.writeSize(v.Count);
                 foreach(_System.Collections.Generic.KeyValuePair<SmartObject.MetadataField, string> e in v)
                 {
-                    ostr.writeEnum((int)e.Key, 8);
+                    ostr.writeEnum((int)e.Key, 10);
                     ostr.writeString(e.Value);
                 }
             }
@@ -793,7 +836,7 @@ namespace SmartObject
             for(int i = 0; i < sz; ++i)
             {
                 SmartObject.MetadataField k;
-                k = (SmartObject.MetadataField)istr.readEnum(8);
+                k = (SmartObject.MetadataField)istr.readEnum(10);
                 string v;
                 v = istr.readString();
                 r[k] = v;
@@ -1568,11 +1611,11 @@ namespace SmartObject
 
         #region Synchronous operations
 
-        public void notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext())
+        public void notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext())
         {
             try
             {
-                _iceI_notifyAsync(source, data, context, null, _System.Threading.CancellationToken.None, true).Wait();
+                _iceI_notifyAsync(eventName, source, data, context, null, _System.Threading.CancellationToken.None, true).Wait();
             }
             catch(_System.AggregateException ex_)
             {
@@ -1584,21 +1627,21 @@ namespace SmartObject
 
         #region Async Task operations
 
-        public _System.Threading.Tasks.Task notifyAsync(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext(), _System.IProgress<bool> progress = null, _System.Threading.CancellationToken cancel = new _System.Threading.CancellationToken())
+        public _System.Threading.Tasks.Task notifyAsync(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext(), _System.IProgress<bool> progress = null, _System.Threading.CancellationToken cancel = new _System.Threading.CancellationToken())
         {
-            return _iceI_notifyAsync(source, data, context, progress, cancel, false);
+            return _iceI_notifyAsync(eventName, source, data, context, progress, cancel, false);
         }
 
-        private _System.Threading.Tasks.Task _iceI_notifyAsync(string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, Ice.OptionalContext context, _System.IProgress<bool> progress, _System.Threading.CancellationToken cancel, bool synchronous)
+        private _System.Threading.Tasks.Task _iceI_notifyAsync(string iceP_eventName, string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, Ice.OptionalContext context, _System.IProgress<bool> progress, _System.Threading.CancellationToken cancel, bool synchronous)
         {
             var completed = new IceInternal.OperationTaskCompletionCallback<object>(progress, cancel);
-            _iceI_notify(iceP_source, iceP_data, context, synchronous, completed);
+            _iceI_notify(iceP_eventName, iceP_source, iceP_data, context, synchronous, completed);
             return completed.Task;
         }
 
         private const string _notify_name = "notify";
 
-        private void _iceI_notify(string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, _System.Collections.Generic.Dictionary<string, string> context, bool synchronous, IceInternal.OutgoingAsyncCompletionCallback completed)
+        private void _iceI_notify(string iceP_eventName, string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, _System.Collections.Generic.Dictionary<string, string> context, bool synchronous, IceInternal.OutgoingAsyncCompletionCallback completed)
         {
             var outAsync = getOutgoingAsync<object>(completed);
             outAsync.invoke(
@@ -1609,6 +1652,7 @@ namespace SmartObject
                 synchronous,
                 write: (Ice.OutputStream ostr) =>
                 {
+                    ostr.writeString(iceP_eventName);
                     ostr.writeString(iceP_source);
                     SmartObject.MetadataHelper.write(ostr, iceP_data);
                 });
@@ -1618,19 +1662,19 @@ namespace SmartObject
 
         #region Asynchronous operations
 
-        public Ice.AsyncResult<SmartObject.Callback_EventSink_notify> begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext())
+        public Ice.AsyncResult<SmartObject.Callback_EventSink_notify> begin_notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext())
         {
-            return begin_notify(source, data, context, null, null, false);
+            return begin_notify(eventName, source, data, context, null, null, false);
         }
 
-        public Ice.AsyncResult begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.AsyncCallback callback, object cookie)
+        public Ice.AsyncResult begin_notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.AsyncCallback callback, object cookie)
         {
-            return begin_notify(source, data, new Ice.OptionalContext(), callback, cookie, false);
+            return begin_notify(eventName, source, data, new Ice.OptionalContext(), callback, cookie, false);
         }
 
-        public Ice.AsyncResult begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context, Ice.AsyncCallback callback, object cookie)
+        public Ice.AsyncResult begin_notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context, Ice.AsyncCallback callback, object cookie)
         {
-            return begin_notify(source, data, context, callback, cookie, false);
+            return begin_notify(eventName, source, data, context, callback, cookie, false);
         }
 
         public void end_notify(Ice.AsyncResult asyncResult)
@@ -1639,7 +1683,7 @@ namespace SmartObject
             ((IceInternal.OutgoingAsyncT<object>)resultI_.OutgoingAsync).getResult(resultI_.wait());
         }
 
-        private Ice.AsyncResult<SmartObject.Callback_EventSink_notify> begin_notify(string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, _System.Collections.Generic.Dictionary<string, string> context, Ice.AsyncCallback completedCallback, object cookie, bool synchronous)
+        private Ice.AsyncResult<SmartObject.Callback_EventSink_notify> begin_notify(string iceP_eventName, string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, _System.Collections.Generic.Dictionary<string, string> context, Ice.AsyncCallback completedCallback, object cookie, bool synchronous)
         {
             var completed = new IceInternal.OperationAsyncResultCompletionCallback<SmartObject.Callback_EventSink_notify, object>(
                 (SmartObject.Callback_EventSink_notify cb, object ret) =>
@@ -1650,7 +1694,7 @@ namespace SmartObject
                     }
                 },
                 this, _notify_name, cookie, completedCallback);
-            _iceI_notify(iceP_source, iceP_data, context, synchronous, completed);
+            _iceI_notify(iceP_eventName, iceP_source, iceP_data, context, synchronous, completed);
             return completed;
         }
 
@@ -1788,6 +1832,250 @@ namespace SmartObject
             if(proxy != null)
             {
                 EventSinkPrxHelper result = new EventSinkPrxHelper();
+                result.iceCopyFrom(proxy);
+                return result;
+            }
+            return null;
+        }
+
+        #endregion
+    }
+
+    [_System.Runtime.InteropServices.ComVisible(false)]
+    [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
+    [_System.Serializable]
+    public sealed class PulseSinkPrxHelper : Ice.ObjectPrxHelperBase, PulseSinkPrx
+    {
+        public PulseSinkPrxHelper()
+        {
+        }
+
+        public PulseSinkPrxHelper(_System.Runtime.Serialization.SerializationInfo info, _System.Runtime.Serialization.StreamingContext context) : base(info, context)
+        {
+        }
+
+        #region Synchronous operations
+
+        public void notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext())
+        {
+            try
+            {
+                _iceI_notifyAsync(source, data, context, null, _System.Threading.CancellationToken.None, true).Wait();
+            }
+            catch(_System.AggregateException ex_)
+            {
+                throw ex_.InnerException;
+            }
+        }
+
+        #endregion
+
+        #region Async Task operations
+
+        public _System.Threading.Tasks.Task notifyAsync(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext(), _System.IProgress<bool> progress = null, _System.Threading.CancellationToken cancel = new _System.Threading.CancellationToken())
+        {
+            return _iceI_notifyAsync(source, data, context, progress, cancel, false);
+        }
+
+        private _System.Threading.Tasks.Task _iceI_notifyAsync(string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, Ice.OptionalContext context, _System.IProgress<bool> progress, _System.Threading.CancellationToken cancel, bool synchronous)
+        {
+            var completed = new IceInternal.OperationTaskCompletionCallback<object>(progress, cancel);
+            _iceI_notify(iceP_source, iceP_data, context, synchronous, completed);
+            return completed.Task;
+        }
+
+        private const string _notify_name = "notify";
+
+        private void _iceI_notify(string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, _System.Collections.Generic.Dictionary<string, string> context, bool synchronous, IceInternal.OutgoingAsyncCompletionCallback completed)
+        {
+            var outAsync = getOutgoingAsync<object>(completed);
+            outAsync.invoke(
+                _notify_name,
+                Ice.OperationMode.Normal,
+                Ice.FormatType.DefaultFormat,
+                context,
+                synchronous,
+                write: (Ice.OutputStream ostr) =>
+                {
+                    ostr.writeString(iceP_source);
+                    SmartObject.MetadataHelper.write(ostr, iceP_data);
+                });
+        }
+
+        #endregion
+
+        #region Asynchronous operations
+
+        public Ice.AsyncResult<SmartObject.Callback_PulseSink_notify> begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context = new Ice.OptionalContext())
+        {
+            return begin_notify(source, data, context, null, null, false);
+        }
+
+        public Ice.AsyncResult begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.AsyncCallback callback, object cookie)
+        {
+            return begin_notify(source, data, new Ice.OptionalContext(), callback, cookie, false);
+        }
+
+        public Ice.AsyncResult begin_notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.OptionalContext context, Ice.AsyncCallback callback, object cookie)
+        {
+            return begin_notify(source, data, context, callback, cookie, false);
+        }
+
+        public void end_notify(Ice.AsyncResult asyncResult)
+        {
+            var resultI_ = IceInternal.AsyncResultI.check(asyncResult, this, _notify_name);
+            ((IceInternal.OutgoingAsyncT<object>)resultI_.OutgoingAsync).getResult(resultI_.wait());
+        }
+
+        private Ice.AsyncResult<SmartObject.Callback_PulseSink_notify> begin_notify(string iceP_source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data, _System.Collections.Generic.Dictionary<string, string> context, Ice.AsyncCallback completedCallback, object cookie, bool synchronous)
+        {
+            var completed = new IceInternal.OperationAsyncResultCompletionCallback<SmartObject.Callback_PulseSink_notify, object>(
+                (SmartObject.Callback_PulseSink_notify cb, object ret) =>
+                {
+                    if(cb != null)
+                    {
+                        cb.Invoke();
+                    }
+                },
+                this, _notify_name, cookie, completedCallback);
+            _iceI_notify(iceP_source, iceP_data, context, synchronous, completed);
+            return completed;
+        }
+
+        #endregion
+
+        #region Checked and unchecked cast operations
+
+        public static PulseSinkPrx checkedCast(Ice.ObjectPrx b)
+        {
+            if(b == null)
+            {
+                return null;
+            }
+            PulseSinkPrx r = b as PulseSinkPrx;
+            if((r == null) && b.ice_isA(ice_staticId()))
+            {
+                PulseSinkPrxHelper h = new PulseSinkPrxHelper();
+                h.iceCopyFrom(b);
+                r = h;
+            }
+            return r;
+        }
+
+        public static PulseSinkPrx checkedCast(Ice.ObjectPrx b, _System.Collections.Generic.Dictionary<string, string> ctx)
+        {
+            if(b == null)
+            {
+                return null;
+            }
+            PulseSinkPrx r = b as PulseSinkPrx;
+            if((r == null) && b.ice_isA(ice_staticId(), ctx))
+            {
+                PulseSinkPrxHelper h = new PulseSinkPrxHelper();
+                h.iceCopyFrom(b);
+                r = h;
+            }
+            return r;
+        }
+
+        public static PulseSinkPrx checkedCast(Ice.ObjectPrx b, string f)
+        {
+            if(b == null)
+            {
+                return null;
+            }
+            Ice.ObjectPrx bb = b.ice_facet(f);
+            try
+            {
+                if(bb.ice_isA(ice_staticId()))
+                {
+                    PulseSinkPrxHelper h = new PulseSinkPrxHelper();
+                    h.iceCopyFrom(bb);
+                    return h;
+                }
+            }
+            catch(Ice.FacetNotExistException)
+            {
+            }
+            return null;
+        }
+
+        public static PulseSinkPrx checkedCast(Ice.ObjectPrx b, string f, _System.Collections.Generic.Dictionary<string, string> ctx)
+        {
+            if(b == null)
+            {
+                return null;
+            }
+            Ice.ObjectPrx bb = b.ice_facet(f);
+            try
+            {
+                if(bb.ice_isA(ice_staticId(), ctx))
+                {
+                    PulseSinkPrxHelper h = new PulseSinkPrxHelper();
+                    h.iceCopyFrom(bb);
+                    return h;
+                }
+            }
+            catch(Ice.FacetNotExistException)
+            {
+            }
+            return null;
+        }
+
+        public static PulseSinkPrx uncheckedCast(Ice.ObjectPrx b)
+        {
+            if(b == null)
+            {
+                return null;
+            }
+            PulseSinkPrx r = b as PulseSinkPrx;
+            if(r == null)
+            {
+                PulseSinkPrxHelper h = new PulseSinkPrxHelper();
+                h.iceCopyFrom(b);
+                r = h;
+            }
+            return r;
+        }
+
+        public static PulseSinkPrx uncheckedCast(Ice.ObjectPrx b, string f)
+        {
+            if(b == null)
+            {
+                return null;
+            }
+            Ice.ObjectPrx bb = b.ice_facet(f);
+            PulseSinkPrxHelper h = new PulseSinkPrxHelper();
+            h.iceCopyFrom(bb);
+            return h;
+        }
+
+        private static readonly string[] _ids =
+        {
+            "::Ice::Object",
+            "::SmartObject::PulseSink"
+        };
+
+        public static string ice_staticId()
+        {
+            return _ids[1];
+        }
+
+        #endregion
+
+        #region Marshaling support
+
+        public static void write(Ice.OutputStream ostr, PulseSinkPrx v)
+        {
+            ostr.writeProxy(v);
+        }
+
+        public static PulseSinkPrx read(Ice.InputStream istr)
+        {
+            Ice.ObjectPrx proxy = istr.readProxy();
+            if(proxy != null)
+            {
+                PulseSinkPrxHelper result = new PulseSinkPrxHelper();
                 result.iceCopyFrom(proxy);
                 return result;
             }
@@ -2878,7 +3166,7 @@ namespace SmartObject
     {
         #region Slice operations
 
-        public abstract void notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.Current current = null);
+        public abstract void notify(string eventName, string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.Current current = null);
 
         #endregion
 
@@ -2917,6 +3205,114 @@ namespace SmartObject
         [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011")]
         public static _System.Threading.Tasks.Task<Ice.OutputStream>
         iceD_notify(EventSink obj, IceInternal.Incoming inS, Ice.Current current)
+        {
+            Ice.ObjectImpl.iceCheckMode(Ice.OperationMode.Normal, current.mode);
+            var istr = inS.startReadParams();
+            string iceP_eventName;
+            string iceP_source;
+            _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> iceP_data;
+            iceP_eventName = istr.readString();
+            iceP_source = istr.readString();
+            iceP_data = SmartObject.MetadataHelper.read(istr);
+            inS.endReadParams();
+            obj.notify(iceP_eventName, iceP_source, iceP_data, current);
+            return inS.setResult(inS.writeEmptyParams());
+        }
+
+        private static readonly string[] _all =
+        {
+            "ice_id",
+            "ice_ids",
+            "ice_isA",
+            "ice_ping",
+            "notify"
+        };
+
+        public override _System.Threading.Tasks.Task<Ice.OutputStream>
+        iceDispatch(IceInternal.Incoming inS, Ice.Current current)
+        {
+            int pos = _System.Array.BinarySearch(_all, current.operation, IceUtilInternal.StringUtil.OrdinalStringComparer);
+            if(pos < 0)
+            {
+                throw new Ice.OperationNotExistException(current.id, current.facet, current.operation);
+            }
+
+            switch(pos)
+            {
+                case 0:
+                {
+                    return Ice.ObjectImpl.iceD_ice_id(this, inS, current);
+                }
+                case 1:
+                {
+                    return Ice.ObjectImpl.iceD_ice_ids(this, inS, current);
+                }
+                case 2:
+                {
+                    return Ice.ObjectImpl.iceD_ice_isA(this, inS, current);
+                }
+                case 3:
+                {
+                    return Ice.ObjectImpl.iceD_ice_ping(this, inS, current);
+                }
+                case 4:
+                {
+                    return iceD_notify(this, inS, current);
+                }
+            }
+
+            _System.Diagnostics.Debug.Assert(false);
+            throw new Ice.OperationNotExistException(current.id, current.facet, current.operation);
+        }
+
+        #endregion
+    }
+
+    [_System.Runtime.InteropServices.ComVisible(false)]
+    [_System.CodeDom.Compiler.GeneratedCodeAttribute("slice2cs", "3.7.0")]
+    public abstract class PulseSinkDisp_ : Ice.ObjectImpl, PulseSink
+    {
+        #region Slice operations
+
+        public abstract void notify(string source, _System.Collections.Generic.Dictionary<SmartObject.MetadataField, string> data, Ice.Current current = null);
+
+        #endregion
+
+        #region Slice type-related members
+
+        private static readonly string[] _ids =
+        {
+            "::Ice::Object",
+            "::SmartObject::PulseSink"
+        };
+
+        public override bool ice_isA(string s, Ice.Current current = null)
+        {
+            return _System.Array.BinarySearch(_ids, s, IceUtilInternal.StringUtil.OrdinalStringComparer) >= 0;
+        }
+
+        public override string[] ice_ids(Ice.Current current = null)
+        {
+            return _ids;
+        }
+
+        public override string ice_id(Ice.Current current = null)
+        {
+            return _ids[1];
+        }
+
+        public static new string ice_staticId()
+        {
+            return _ids[1];
+        }
+
+        #endregion
+
+        #region Operation dispatch
+
+        [_System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011")]
+        public static _System.Threading.Tasks.Task<Ice.OutputStream>
+        iceD_notify(PulseSink obj, IceInternal.Incoming inS, Ice.Current current)
         {
             Ice.ObjectImpl.iceCheckMode(Ice.OperationMode.Normal, current.mode);
             var istr = inS.startReadParams();

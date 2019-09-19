@@ -51,7 +51,6 @@ WIRING_SERVER_PROXY = 'WiringServer.Proxy'
 
 # FIXME: 'energymodel' is very application specific
 # we should provide a generic solution for this
-
 ENERGY_MODEL_SERVER_PROXY = "EnergyModelServer.Proxy"
 
 default_config = {
@@ -125,21 +124,6 @@ class MetadataHelper:
                 retval[self.name_to_field[key]] = str(value)
 
         return retval
-
-
-class ObservableMixin:
-    observer_cast = None
-
-    def __init__(self):
-        assert self.observer_cast is not None, \
-            "observer_cast class attribute should be defined"
-        self.observer = None
-
-    def setObserver(self, observer, current):
-        ic = current.adapter.getCommunicator()
-        proxy = ic.stringToProxy(observer)
-        self.observer = self.observer_cast.uncheckedCast(proxy)
-        logger.info("new observer {} for {}".format(observer, current.id.name))
 
 
 class EventWithValueMixin:
@@ -237,16 +221,21 @@ class LoudSpeakerManagerI(infosystem.LoudSpeakerManager):
             )
 
 
-class ObservablePublisher(SmartObject.Observable, ObservableMixin):
+class ObservableMixin(SmartObject.Observable):
+    observer_cast = None
     proxy_types = {
         SmartObject.AnalogSink: SmartObject.AnalogSinkPrx,
         SmartObject.DigitalSink: SmartObject.DigitalSinkPrx,
         SmartObject.EventSink: SmartObject.EventSinkPrx,
         SmartServices.RoutingSink: SmartServices.RoutingSinkPrx,
         Citizen.ReportSink: Citizen.ReportSinkPrx,
+        infosystem.LoudSpeakerManager: infosystem.LoudSpeakerManagerPrx,
     }
 
-    def __init__(self, broker, source, transducer_type, meta):
+    def __init__(self, broker, source, transducer_type):
+        source = source.strip()
+        assert source, "Invalid provided source"
+
         try:
             self.observer_cast = self.proxy_types[
                 datamodel.transducer_types[transducer_type]
@@ -254,21 +243,27 @@ class ObservablePublisher(SmartObject.Observable, ObservableMixin):
         except KeyError:
             raise TypeError("Unknown transducer type: {}".format(transducer_type))
 
-        ObservableMixin.__init__(self)
-
-        assert source is not None, "Invalid provided source"
-        source = source.strip()
-        assert source != "", "Invalid provided source"
-
-        if meta is None:
-            meta = {}
-
+        self.observer = None
         self.broker = broker
         self.source = source
-        self.meta = meta
 
     def setObserver(self, observer, current):
-        ObservableMixin.setObserver(self, observer, current)
+        ic = current.adapter.getCommunicator()
+        proxy = ic.stringToProxy(observer)
+        self.observer = self.observer_cast.uncheckedCast(proxy)
+        logger.info("new observer {} for {}".format(observer, current.id.name))
+
+    def subscribe(self, observer):
+        prop_key = self.source + " | private-channel"
+        channel_name = self.broker.get_property(prop_key)
+        topic = self.broker.get_topic(channel_name)
+        topic.subscribeAndGetPublisher({}, observer)
+
+
+class ObservablePublisher(ObservableMixin):
+    def __init__(self, broker, source, transducer_type, meta):
+        ObservableMixin.__init__(self, broker, source, transducer_type)
+        self.meta = meta or {}
 
     def publish(self, value, meta=None):
         if self.observer is None:
@@ -298,38 +293,8 @@ class ObservablePublisher(SmartObject.Observable, ObservableMixin):
                 .format(self.observer, value, self.source, meta)
             )
 
-    def subscribe(self, observer):
-        prop_key = self.source + " | private-channel"
-        channel_name = self.broker.get_property(prop_key)
-        topic = self.broker.get_topic(channel_name)
-        topic.subscribeAndGetPublisher({}, observer)
 
-
-class ObservableInfosystemPublisher(SmartObject.Observable, ObservableMixin):
-    proxy_types = {
-        infosystem.LoudSpeakerManager: infosystem.LoudSpeakerManagerPrx,
-    }
-
-    def __init__(self, broker, source, transducer_type):
-        try:
-            self.observer_cast = self.proxy_types[
-                datamodel.transducer_types[transducer_type]
-            ]
-        except KeyError:
-            raise TypeError("Unknown transducer type: {}".format(transducer_type))
-
-        ObservableMixin.__init__(self)
-
-        assert source is not None, "Invalid provided source"
-        source = source.strip()
-        assert source != "", "Invalid provided source"
-
-        self.broker = broker
-        self.source = source
-
-    def setObserver(self, observer, current):
-        ObservableMixin.setObserver(self, observer, current)
-
+class ObservableInfosystemPublisher(ObservableMixin):
     def sayInPlace(self, place, message):
         if self.observer is None:
             raise ValueError("Publisher not yet configured!")
@@ -349,12 +314,6 @@ class ObservableInfosystemPublisher(SmartObject.Observable, ObservableMixin):
             "publish event sayInSpeaker() to '{}', speaker: {}, message: {}"
             .format(self.observer, speaker, message)
         )
-
-    def subscribe(self, observer):
-        prop_key = self.source + " | private-channel"
-        channel_name = self.broker.get_property(prop_key)
-        topic = self.broker.get_topic(channel_name)
-        topic.subscribeAndGetPublisher({}, observer)
 
 
 class Broker:
