@@ -392,9 +392,9 @@ namespace LibCitisim {
 
         private static Broker instance;
 
-        public static Broker Initialize(string config, Ice.Communicator ic=null) {
+        public static Broker Initialize(string config=null, Ice.Communicator ic=null) {
             string[] args = new string[] {"", "--Ice.Config=" + config};
-            if (string.IsNullOrEmpty(config)) {
+            if (ic == null && string.IsNullOrEmpty(config)) {
                 Logger.GetLogger("libcitisim").Warn($"Config file is not provided!");
             }
             return Initialize(args, ic);
