@@ -35,6 +35,11 @@ package: compile
 
 nuget: compile
 	nuget pack -IncludeReferencedProjects -properties Configuration=Release
+	@echo "\n\n--------------------------------------------------------"
+	@echo "Please, remember to upload your package: make nuget-upload"
+
+nuget-upload:
+	scp *.nupkg arco.esi.uclm.es:/var/store/public/nugets
 
 compile: all
 	dotnet publish -o $$(pwd)/LibCitisim src
