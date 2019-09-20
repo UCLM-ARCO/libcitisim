@@ -127,6 +127,10 @@ class MetadataHelper:
 
 
 class EventWithValueMixin:
+    def __init__(self, topic_name, callback):
+        self._topic_name = topic_name
+        self._callback = callback
+
     def _notify(self, value, source, meta, current):
         try:
             meta = MetadataHelper.from_metadata(meta).to_string_dict()
@@ -145,28 +149,21 @@ class EventWithValueMixin:
 
 
 class AnalogSinkI(SmartObject.AnalogSink, EventWithValueMixin):
-    def __init__(self, topic_name, callback):
-        self._topic_name = topic_name
-        self._callback = callback
-
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
 
 
 class DigitalSinkI(SmartObject.DigitalSink, EventWithValueMixin):
-    def __init__(self, topic_name, callback):
-        self._topic_name = topic_name
-        self._callback = callback
+    def notify(self, value, source, meta, current):
+        return self._notify(value, source, meta, current)
 
+
+class EventSinkI(SmartObject.EventSink, EventWithValueMixin):
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
 
 
 class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
-    def __init__(self, topic_name, callback):
-        self._topic_name = topic_name
-        self._callback = callback
-
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
 
@@ -320,8 +317,9 @@ class Broker:
     servant_types = {
         SmartObject.AnalogSink: AnalogSinkI,
         SmartObject.DigitalSink: DigitalSinkI,
-        Citizen.ReportSink: ReportSinkI,
+        SmartObject.EventSink: EventSinkI,
         SmartServices.RoutingSink: RoutingSinkI,
+        Citizen.ReportSink: ReportSinkI,
         infosystem.LoudSpeakerManager: LoudSpeakerManagerI,
     }
 
