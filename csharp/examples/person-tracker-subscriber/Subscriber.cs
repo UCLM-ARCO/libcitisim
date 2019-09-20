@@ -6,9 +6,12 @@ namespace person_tracker_subscriber {
 
         static void Main(string[] args) {
             Broker broker = Broker.Initialize("subscriber.config");
-            broker.SubscribeToPublisher("0A06000000007357", )
-        }
+            broker.SubscribeToPublisher("0A06000000007357", (p, s) => {
+                Console.WriteLine($"- received event, source: {s}, points: {p}");
+            });
 
-        // static void onEvent(points, source)
+            Console.WriteLine("Waiting events...");
+            broker.WaitForEvents();
+        }
     }
 }

@@ -564,7 +564,7 @@ namespace LibCitisim {
             IceStorm.TopicPrx topic = GetTopic(topicName);
 
             if (isBidir)
-                topic.ice_getConnection().setAdapter(_adapter);
+                topic.ice_getConnection().setAdapter(adapter);
             topic.subscribeAndGetPublisher(null, proxy);
             logger.Info($"topic: {topicName}, subscribed proxy: '{proxy}'");
         }

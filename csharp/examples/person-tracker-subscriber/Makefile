@@ -4,9 +4,7 @@ all:
 
 install-deps:
 	@mkdir -p nugets
-	@echo "-> Please, download 'libcitisim.xx.nupkg' from bitbucket"
-	@echo "-> and copy it inside 'nugets' folder"
-	@echo "-> URL: https://bitbucket.org/arco_group/libcitisim/downloads/"
+	@wget -rqnH --cut-dirs=3 --no-parent -P nugets http://arco.esi.uclm.es/public/nugets/
 
 run-subscriber:
 	dotnet run

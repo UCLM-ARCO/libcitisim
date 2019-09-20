@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="libcitisim" Version="0.20190919.1" />
+    <PackageReference Include="libcitisim" Version="0.20190919.2" />
   </ItemGroup>
 
 </Project>

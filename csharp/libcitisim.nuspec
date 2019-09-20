@@ -2,7 +2,7 @@
 <package  xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>libcitisim</id>
-    <version>0.20190919.1</version>
+    <version>0.20190919.2</version>
     <authors>Oscar Acena, Arco Research Group</authors>
     <description>Library for accessing Citisim features</description>
     <dependencies>
