@@ -28,6 +28,10 @@ source:
 tests:
 	nosetests3 test/test_*.py
 
+kill-test-services:
+	@-ps fax|'grep' icebox|'grep' -v grep|cut -d" " -f1|xargs kill -9
+	@-ps fax|'grep' property|'grep' -v grep|cut -d" " -f1|xargs kill -9
+
 install-depends:
 	sudo apt install \
 		python3-nose \

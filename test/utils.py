@@ -10,7 +10,9 @@ from libcitisim.util import EventsMixin as UtilEventMixin
 Ice.loadSlice("/usr/share/slice/PropertyService/PropertyService.ice")
 Ice.loadSlice("{0}/citisim/citizen.ice --all -I{0}".format("/usr/share/slice"))
 Ice.loadSlice("{0}/citisim/infosystem.ice --all -I{0}".format("/usr/share/slice"))
+Ice.loadSlice("{0}/citisim/PersonTracker.ice --all -I{0}".format("/usr/share/slice"))
 import PropertyService as PS
+import KinectData
 from Citisim import Citizen
 from citisim import infosystem
 
@@ -122,6 +124,21 @@ class SpeakerManagerEventsMixin(EventsMixin):
         publisher = topic.getPublisher()
         publisher = infosystem.LoudSpeakerManagerPrx.uncheckedCast(publisher)
         publisher.sayInSpeaker(speaker, message)
+
+
+class PersonTrackerMixin(EventsMixin):
+    known_topics = ["PersonTracking"]
+
+    def _publish_event(self, topic_name, source=None, value=True):
+        topic = self._get_topic(topic_name)
+        publisher = topic.getPublisher()
+        publisher = KinectData.PersonTrackerPrx.uncheckedCast(publisher)
+        points = [
+            KinectData.KinectPoint(
+                "trackid", "state", 1.0, .5, 2.2, .7, 4, 12, 14, 122347623
+            )
+        ]
+        publisher.notify(points, "Test")
 
 
 class PropertyMixin(EventsMixin):

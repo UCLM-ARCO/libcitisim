@@ -147,6 +147,21 @@ class EventWithValueMixin:
                 "provide the right signature?\n"
                 "Expected signature: 'def callback(value, source, metadata)'".format(self._callback))
 
+    def _notify_no_meta(self, value, source, current):
+        try:
+            logger.debug(
+                "event arrived on '{}', value: {}, source: {}"
+                .format(self._topic_name, value, source)
+            )
+            self._callback(value, source)
+
+        except TypeError as e:
+            logger.error(e)
+            logger.error(
+                "There were some error on provided callback '{}', do you "
+                "provide the right signature?\n"
+                "Expected signature: 'def callback(value, source)'".format(self._callback))
+
 
 class AnalogSinkI(SmartObject.AnalogSink, EventWithValueMixin):
     def notify(self, value, source, meta, current):
@@ -156,6 +171,11 @@ class AnalogSinkI(SmartObject.AnalogSink, EventWithValueMixin):
 class DigitalSinkI(SmartObject.DigitalSink, EventWithValueMixin):
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
+
+
+class PersonTrackerI(KinectData.PersonTracker, EventWithValueMixin):
+    def notify(self, points, source, current):
+        return self._notify_no_meta(points, source, current)
 
 
 class EventSinkI(SmartObject.EventSink, EventWithValueMixin):
@@ -227,6 +247,7 @@ class ObservableMixin(SmartObject.Observable):
         SmartServices.RoutingSink: SmartServices.RoutingSinkPrx,
         Citizen.ReportSink: Citizen.ReportSinkPrx,
         infosystem.LoudSpeakerManager: infosystem.LoudSpeakerManagerPrx,
+        KinectData.PersonTracker: KinectData.PersonTrackerPrx,
     }
 
     def __init__(self, broker, source, transducer_type):
@@ -266,24 +287,33 @@ class ObservablePublisher(ObservableMixin):
         if self.observer is None:
             raise ValueError("Publisher not yet configured!")
 
-        if meta is None:
-            meta = self.meta
-
-        # if there is "timestamp" but explicitly set to None, then
-        # remove ts from meta, otherwise (there is no "timestamp" key
-        # in meta), set it as now
-        if "timestamp" not in meta:
-            meta["timestamp"] = int(time())
-        elif meta.get("timestamp") is None:
-            meta.pop("timestamp")
-
-        meta = MetadataHelper(**meta).to_dict()
         if self.observer_cast == SmartServices.RoutingSinkPrx:
             self.observer.notify(value)
             logger.debug(
                 "publish event to '{}', value: {}".format(self.observer, value)
             )
+
+        elif self.observer_cast == KinectData.PersonTrackerPrx:
+            self.observer.notify(value, self.source)
+            logger.debug(
+                "publish event to '{}', value: {}, source: {}".format(
+                    self.observer, value, self.source)
+            )
+
         else:
+            if meta is None:
+                meta = self.meta
+
+            # if there is "timestamp" but explicitly set to None, then
+            # remove ts from meta, otherwise (there is no "timestamp" key
+            # in meta), set it as now
+            if "timestamp" not in meta:
+                meta["timestamp"] = int(time())
+            elif meta.get("timestamp") is None:
+                meta.pop("timestamp")
+            meta = MetadataHelper(**meta).to_dict()
+
+
             self.observer.notify(value, self.source, meta)
             logger.debug(
                 "publish event to '{}', value: {}, source: {}, meta: {}"
@@ -321,6 +351,7 @@ class Broker:
         SmartServices.RoutingSink: RoutingSinkI,
         Citizen.ReportSink: ReportSinkI,
         infosystem.LoudSpeakerManager: LoudSpeakerManagerI,
+        KinectData.PersonTracker: PersonTrackerI,
     }
 
     def __init__(self, arg=None, ic=None):

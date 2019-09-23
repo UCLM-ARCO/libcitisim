@@ -1,3 +1,9 @@
+libcitisim (1.20190923-1) unstable; urgency=low
+
+  * New release, add support for PersonTracker
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 23 Sep 2019 14:16:27 +0200
+
 libcitisim (1.20190920-1) unstable; urgency=low
 
   * New release, missing support for EventSink as subscriber

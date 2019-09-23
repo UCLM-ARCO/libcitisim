@@ -17,9 +17,11 @@ Ice.loadSlice('{}/iot.ice --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citizen.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 Ice.loadSlice('{}/services.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
 Ice.loadSlice('{}/infosystem.ice -I{} --all'.format(SLICE_DIR, os.path.join(SLICE_DIR, "..")))
+Ice.loadSlice('{}/PersonTracker.ice --all'.format(SLICE_DIR))
 
 import SmartObject
 import SmartServices
+import KinectData
 from citisim import infosystem
 from Citisim import Citizen
 
@@ -134,6 +136,7 @@ topic_types = {
     "EvacuationRoute": SmartServices.RoutingSink,
     "SpeakerMessages": infosystem.LoudSpeakerManager,
     "Alarm": SmartObject.EventSink,
+    "PersonTracking": KinectData.PersonTracker,
 }
 
 
@@ -176,6 +179,7 @@ transducer_types = {
     'Speaker': SmartServices.MessageRender,
     'SpeakerManager': infosystem.LoudSpeakerManager,
     'AlarmNotifier': SmartObject.EventSink,
+    'PersonTracker': KinectData.PersonTracker,
 }
 
 
