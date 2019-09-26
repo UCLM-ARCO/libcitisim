@@ -1,3 +1,9 @@
+libcitisim (1.20190926.1-1) unstable; urgency=low
+
+  * New release, support for python 3.5
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 26 Sep 2019 14:57:57 +0200
+
 libcitisim (1.20190926-1) unstable; urgency=low
 
   * New release, set BidirIceStorm as default when UseBiDir is enabled

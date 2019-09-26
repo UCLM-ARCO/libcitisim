@@ -178,38 +178,56 @@ class EventWithValueMixin:
 
 
 class AnalogSinkI(SmartObject.AnalogSink, EventWithValueMixin):
+    def __init__(self, *args, **kwargs):
+        EventWithValueMixin.__init__(self, *args, **kwargs)
+
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
 
 
 class DigitalSinkI(SmartObject.DigitalSink, EventWithValueMixin):
+    def __init__(self, *args, **kwargs):
+        EventWithValueMixin.__init__(self, *args, **kwargs)
+
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
 
 
 class PersonTrackerI(KinectData.PersonTracker, EventWithValueMixin):
+    def __init__(self, *args, **kwargs):
+        EventWithValueMixin.__init__(self, *args, **kwargs)
+
     def notify(self, points, source, current):
         return self._notify_no_meta(points, source, current)
 
 
 class EventSinkI(SmartObject.EventSink, EventWithValueMixin):
+    def __init__(self, *args, **kwargs):
+        EventWithValueMixin.__init__(self, *args, **kwargs)
+
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
 
 
 class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
+    def __init__(self, *args, **kwargs):
+        EventWithValueMixin.__init__(self, *args, **kwargs)
+
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
 
+
 class OccupancyMonitorI(SmartEnvironment.OccupancyMonitor, EventWithValueMixin):
+    def __init__(self, *args, **kwargs):
+        EventWithValueMixin.__init__(self, *args, **kwargs)
+
     def notify(self, changes, current):
         return self._notify_only_value(changes, current)
 
 
 class RoutingSinkI(SmartServices.RoutingSink):
-    def __init__(self, topic_name, callback):
-        self._topic_name = topic_name
-        self._callback = callback
+    def __init__(self, *args, **kwargs):
+        EventWithValueMixin.__init__(self, *args, **kwargs)
 
     def notify(self, value, current):
         try:
