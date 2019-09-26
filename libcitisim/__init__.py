@@ -162,6 +162,20 @@ class EventWithValueMixin:
                 "provide the right signature?\n"
                 "Expected signature: 'def callback(value, source)'".format(self._callback))
 
+    def _notify_only_value(self, value, current):
+        try:
+            logger.debug(
+                "event arrived on '{}', value: {}".format(self._topic_name, value)
+            )
+            self._callback(value)
+
+        except TypeError as e:
+            logger.error(e)
+            logger.error(
+                "There were some error on provided callback '{}', do you "
+                "provide the right signature?\n"
+                "Expected signature: 'def callback(value)'".format(self._callback))
+
 
 class AnalogSinkI(SmartObject.AnalogSink, EventWithValueMixin):
     def notify(self, value, source, meta, current):
@@ -186,6 +200,10 @@ class EventSinkI(SmartObject.EventSink, EventWithValueMixin):
 class ReportSinkI(Citizen.ReportSink, EventWithValueMixin):
     def notify(self, value, source, meta, current):
         return self._notify(value, source, meta, current)
+
+class OccupancyMonitorI(SmartEnvironment.OccupancyMonitor, EventWithValueMixin):
+    def notify(self, changes, current):
+        return self._notify_only_value(changes, current)
 
 
 class RoutingSinkI(SmartServices.RoutingSink):
@@ -248,6 +266,7 @@ class ObservableMixin(SmartObject.Observable):
         Citizen.ReportSink: Citizen.ReportSinkPrx,
         infosystem.LoudSpeakerManager: infosystem.LoudSpeakerManagerPrx,
         KinectData.PersonTracker: KinectData.PersonTrackerPrx,
+        SmartEnvironment.OccupancyMonitor: SmartEnvironment.OccupancyMonitorPrx,
     }
 
     def __init__(self, broker, source, transducer_type):
@@ -287,7 +306,9 @@ class ObservablePublisher(ObservableMixin):
         if self.observer is None:
             raise ValueError("Publisher not yet configured!")
 
-        if self.observer_cast == SmartServices.RoutingSinkPrx:
+        if self.observer_cast in [
+                SmartServices.RoutingSinkPrx,
+                SmartEnvironment.OccupancyMonitorPrx]:
             self.observer.notify(value)
             logger.debug(
                 "publish event to '{}', value: {}".format(self.observer, value)
@@ -312,7 +333,6 @@ class ObservablePublisher(ObservableMixin):
             elif meta.get("timestamp") is None:
                 meta.pop("timestamp")
             meta = MetadataHelper(**meta).to_dict()
-
 
             self.observer.notify(value, self.source, meta)
             logger.debug(
@@ -349,6 +369,7 @@ class Broker:
         SmartObject.DigitalSink: DigitalSinkI,
         SmartObject.EventSink: EventSinkI,
         SmartServices.RoutingSink: RoutingSinkI,
+        SmartEnvironment.OccupancyMonitor: OccupancyMonitorI,
         Citizen.ReportSink: ReportSinkI,
         infosystem.LoudSpeakerManager: LoudSpeakerManagerI,
         KinectData.PersonTracker: PersonTrackerI,
@@ -383,9 +404,12 @@ class Broker:
 
     def _set_default_properties(self):
         for key, value in default_config.items():
-            if not self.props.getProperty(key):
-                logger.info("setting default value for property '{}' = '{}'".format(key, value))
-                self.props.setProperty(key, value)
+            if self.props.getProperty(key):
+                continue
+            if key == TOPICMANAGER_PROXY and self.is_bidir:
+                value = "BidirIceStorm/TopicManager"
+            logger.info("setting default value for property '{}' = '{}'".format(key, value))
+            self.props.setProperty(key, value)
 
     @memoizedproperty
     def adapter(self):

@@ -59,6 +59,7 @@ class EventsMixin:
         config = os.path.join(cls.pwd, "is.config")
         assert os.path.exists(config), "Missing " + config
         cmd = "icebox --Ice.Config=" + config
+        print(cmd)
         cls.is_server = Popen(cmd.split(), cwd=cls.pwd, stdout=PIPE)
 
         print("- waiting for IS to launch...")

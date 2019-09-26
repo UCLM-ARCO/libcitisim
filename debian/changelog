@@ -1,3 +1,9 @@
+libcitisim (1.20190926-1) unstable; urgency=low
+
+  * New release, set BidirIceStorm as default when UseBiDir is enabled
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 26 Sep 2019 13:54:09 +0200
+
 libcitisim (1.20190923-1) unstable; urgency=low
 
   * New release, add support for PersonTracker

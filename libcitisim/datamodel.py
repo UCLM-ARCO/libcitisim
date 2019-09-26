@@ -21,6 +21,7 @@ Ice.loadSlice('{}/PersonTracker.ice --all'.format(SLICE_DIR))
 
 import SmartObject
 import SmartServices
+import SmartEnvironment
 import KinectData
 from citisim import infosystem
 from Citisim import Citizen
@@ -137,6 +138,7 @@ topic_types = {
     "SpeakerMessages": infosystem.LoudSpeakerManager,
     "Alarm": SmartObject.EventSink,
     "PersonTracking": KinectData.PersonTracker,
+    "OccupancyChanges": SmartEnvironment.OccupancyMonitor,
 }
 
 
@@ -180,6 +182,7 @@ transducer_types = {
     'SpeakerManager': infosystem.LoudSpeakerManager,
     'AlarmNotifier': SmartObject.EventSink,
     'PersonTracker': KinectData.PersonTracker,
+    'OccupancyReporter': SmartEnvironment.OccupancyMonitor,
 }
 
 
