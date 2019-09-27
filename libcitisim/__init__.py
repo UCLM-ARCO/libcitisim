@@ -24,7 +24,7 @@ Ice.loadSlice('{0}/citisim/citizen.ice -I{0} --all'.format(SLICE_DIR))
 Ice.loadSlice('{}/citisim/energy.ice'.format(SLICE_DIR))
 Ice.loadSlice('{}/citisim/infosystem.ice'.format(SLICE_DIR))
 
-import PropertyService as PS
+import PropertyService
 import SmartObject  # noqa
 import SmartServices  # noqa
 from SmartObject import MetadataField  # noqa
@@ -510,7 +510,7 @@ class Broker:
 
             type_ = datamodel.transducer_types.get(transducer_type)
             assert type_ is not None
-        except (PS.PropertyException, AssertionError):
+        except (PropertyService.PropertyException, AssertionError):
             raise ValueError("Unknown or invalid publisher: {}".format(source))
 
         servant = self.servant_types[type_](topic_name, callback)
@@ -584,7 +584,7 @@ class Broker:
             raise ValueError(
                 "Missing configuration property: {}".format(PROPERTY_SERVER_PROXY))
 
-        return PS.PropertyServerPrx.checkedCast(manager)
+        return PropertyService.PropertyServerPrx.checkedCast(manager)
 
 
 def normalize_addr(address):
