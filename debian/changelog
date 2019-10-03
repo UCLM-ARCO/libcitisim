@@ -1,3 +1,9 @@
+libcitisim (1.20191003-1) unstable; urgency=low
+
+  * New release, add flux sensor
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 03 Oct 2019 13:45:21 +0200
+
 libcitisim (1.20190927-1) unstable; urgency=low
 
   * New release, remove PS alias to get PropertyService
