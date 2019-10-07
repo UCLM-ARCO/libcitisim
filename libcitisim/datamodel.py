@@ -256,4 +256,5 @@ metadata = {
     'place':         TypeCast(desc='Standard placeID'),
     'category':      TypeCast(desc='Tags or categories'),
     'citizenemail':  TypeCast(desc='Citizen Report user identifier'),
+    'type':          TypeCast(desc="Citizen Report type")
 }

@@ -1,3 +1,9 @@
+libcitisim (1.20191007-1) unstable; urgency=low
+
+  * New release, add 'type' to metadata
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 07 Oct 2019 13:52:57 +0200
+
 libcitisim (1.20191003-1) unstable; urgency=low
 
   * New release, add flux sensor

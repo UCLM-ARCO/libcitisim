@@ -73,6 +73,7 @@ class MetadataHelper:
         'place':         MetadataField.Place,
         'category':      MetadataField.Category,
         'citizenemail':  MetadataField.CitizenEmail,
+        'type':          MetadataField.Type,
     }
 
     def __init__(self, **kargs):
