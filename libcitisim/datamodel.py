@@ -101,6 +101,7 @@ topic_types = {
     "ApparentPower": SmartObject.AnalogSink,
     "Anemometer": SmartObject.AnalogSink,
     "Battery": SmartObject.AnalogSink,
+    "BinStatus": SmartObject.AnalogSink,
     "CarbonDioxide": SmartObject.AnalogSink,
     "CarbonMonoxide": SmartObject.AnalogSink,
     "Current": SmartObject.AnalogSink,
