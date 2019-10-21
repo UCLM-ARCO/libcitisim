@@ -551,7 +551,8 @@ class Broker:
     def _get_servant_proxy(self, topic_name, callback):
         type_ = datamodel.topic_types.get(topic_name)
         if type_ is None:
-            raise ValueError("Unknown topic name: {}".format(topic_name))
+            raise ValueError("'{}' is not a valid Citisim datamodel topic".format(
+                topic_name))
 
         servant = self.servant_types[type_](topic_name, callback)
         proxy = self.adapter.addWithUUID(servant)

@@ -1,3 +1,9 @@
+libcitisim (1.20191021-1) unstable; urgency=low
+
+  * New release, add 'BinStatus' to topic list
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Mon, 21 Oct 2019 09:57:20 +0200
+
 libcitisim (1.20191007-1) unstable; urgency=low
 
   * New release, add 'type' to metadata
