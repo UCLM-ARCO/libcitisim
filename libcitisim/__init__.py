@@ -309,7 +309,7 @@ class ObservableMixin(SmartObject.Observable):
         if ic.getProperties().getProperty("Ice.Default.EncodingVersion") == "1.0":
             proxy = proxy.ice_encodingVersion(Ice.Encoding_1_0)
         self.observer = self.observer_cast.uncheckedCast(proxy)
-        logger.info("new observer {} for {}".format(observer, current.id.name))
+        logger.info("new observer {} for {}".format(proxy, current.id.name))
 
     def subscribe(self, observer):
         prop_key = self.source + " | private-channel"
