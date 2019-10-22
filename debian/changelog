@@ -1,3 +1,9 @@
+libcitisim (1.20191022-1) unstable; urgency=low
+
+  * New release, use Default.EncodingVersion 
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 22 Oct 2019 12:29:52 +0200
+
 libcitisim (1.20191021-1) unstable; urgency=low
 
   * New release, add 'BinStatus' to topic list

@@ -306,6 +306,8 @@ class ObservableMixin(SmartObject.Observable):
     def setObserver(self, observer, current):
         ic = current.adapter.getCommunicator()
         proxy = ic.stringToProxy(observer)
+        if ic.getProperties().getProperty("Ice.Default.EncodingVersion") == "1.0":
+            proxy = proxy.ice_encodingVersion(Ice.Encoding_1_0)
         self.observer = self.observer_cast.uncheckedCast(proxy)
         logger.info("new observer {} for {}".format(observer, current.id.name))
 
@@ -342,7 +344,7 @@ class ObservablePublisher(ObservableMixin):
 
         else:
             if meta is None:
-                meta = self.meta
+                meta = self.meta.copy()
 
             # if there is "timestamp" but explicitly set to None, then
             # remove ts from meta, otherwise (there is no "timestamp" key
