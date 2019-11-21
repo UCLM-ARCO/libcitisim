@@ -275,6 +275,33 @@ class LoudSpeakerManagerI(infosystem.LoudSpeakerManager):
             )
 
 
+class MessageRenderI(SmartServices.MessageRender):
+    def __init__(self, topic_name, callback):
+        self._topic_name = topic_name
+        self._callback = callback
+
+    def render(self, messageID, current):
+        print('render: ' + messageID)
+        return self._call_callback(messageID)
+
+    def clear(self, current):
+        return self._call_callback("")
+
+    def _call_callback(self, messageID):
+        try:
+            logger.debug(
+                "event arrived on '{}', value: {}".format(self._topic_name, messageID)
+            )
+            self._callback(messageID)
+
+        except TypeError as e:
+            logger.error(e)
+            logger.error(
+                "There were some error on provided callback '{}', do you "
+                "provide the right signature?\n"
+                "Expected signature: 'def callback(messageID)'".format(self._callback))
+
+
 class ObservableMixin(SmartObject.Observable):
     observer_cast = None
     proxy_types = {
@@ -390,6 +417,7 @@ class Broker:
         SmartObject.DigitalSink: DigitalSinkI,
         SmartObject.EventSink: EventSinkI,
         SmartServices.RoutingSink: RoutingSinkI,
+        SmartServices.MessageRender: MessageRenderI,
         SmartEnvironment.OccupancyMonitor: OccupancyMonitorI,
         Citizen.ReportSink: ReportSinkI,
         infosystem.LoudSpeakerManager: LoudSpeakerManagerI,

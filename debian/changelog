@@ -1,6 +1,12 @@
+libcitisim (1.20191121-1) unstable; urgency=low
+
+  * New release, add support for MessageRender
+
+ -- Oscar Aceña Herrera <oscaracena@gmail.com>  Thu, 21 Nov 2019 11:13:57 +0100
+
 libcitisim (1.20191022-1) unstable; urgency=low
 
-  * New release, use Default.EncodingVersion 
+  * New release, use Default.EncodingVersion
 
  -- Oscar Aceña Herrera <oscaracena@gmail.com>  Tue, 22 Oct 2019 12:29:52 +0200
 

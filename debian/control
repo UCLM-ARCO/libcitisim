@@ -10,7 +10,7 @@ Build-Depends:
  python3,
  quilt,
  dh-python
-Standards-Version: 4.2.1
+Standards-Version: 4.4.0
 
 Package: libcitisim
 Architecture: all
